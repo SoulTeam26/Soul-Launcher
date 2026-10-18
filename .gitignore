@@ -1,0 +1,12 @@
+node_modules/
+dist/
+release/
+out/
+*.log
+.env
+.env.*
+.env
+.env.*
+serviceAccountKey.json
+firebase-adminsdk.json
+admin.html

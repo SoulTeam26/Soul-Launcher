@@ -1,0 +1,306 @@
+<!-- 
+  SOUL LAUNCHER - LOADING SCREEN (index.html)
+  Primary loading sequence with theme persistence and account sync.
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Soul Launcher - Loading</title>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../soul-core.css">
+  <link rel="stylesheet" href="../error-handling/Notification.css">
+  <link rel="stylesheet" href="loading.css">
+</head>
+
+<body>
+   <div id="titlebar">
+     <div class="tb-left">
+       <img src="../../assets/icons/icon.png" class="tb-icon" alt="Soul Icon">
+       <span class="tb-title">Soul Launcher</span>
+     </div>
+    <div class="tb-controls">
+      <button class="tb-btn" id="btn-min"><i class="fa-solid fa-square-minus"></i></button>
+      <button class="tb-btn" id="btn-max"><i class="fa-solid fa-window-maximize"></i></button>
+      <button class="tb-btn tb-cls" id="btn-close"><i class="fa-solid fa-circle-xmark"></i></button>
+    </div>
+  </div>
+
+   <div id="app">
+     <div id="bg-layer"></div>
+     <div class="ghost-layer"></div>
+     <div class="content">
+       <div class="hero-group">
+         <div class="hero-title">SOUL<span class="hl">LAUNCHER</span></div>
+       </div>
+       <div class="hero-eyebrow">
+           <i class="fa-solid fa-bolt"></i> Best Performance Launcher
+       </div>
+       <div class="progress-wrap">
+         <div class="bar-track">
+           <div class="bar-fill" id="barFill"></div>
+         </div>
+       </div>
+       <div class="status-row">
+         <span class="status-text" id="statusText">Checking session...</span>
+         <span class="status-pct" id="statusPct">0%</span>
+       </div>
+     </div>
+     <div class="rights"><i class="fa-solid fa-copyright"></i> 2026 Soul Launcher. All rights reserved.</div>
+   </div>
+
+   <script src="../ghosts.js"></script>
+   <script src="../error-handling/Notification.js"></script>
+   <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+   <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+   <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js"></script>
+   <script src="../login/firebase-config.js"></script>
+   <script>
+     (async () => {
+       const { soul } = window;
+       document.getElementById('btn-min').onclick = () => soul.minimize();
+       document.getElementById('btn-max').onclick = () => soul.maximize();
+       document.getElementById('btn-close').onclick = () => soul.close();
+
+        var showSnow = await soul.getSetting('snowParticles');
+        var showAnim = (await soul.getSetting('animations')) !== false;
+        if (showAnim) spawnGhosts(5);
+        if (showAnim) document.body.classList.remove('no-anim'); else document.body.classList.add('no-anim');
+
+        var canvas = document.createElement('canvas');
+        canvas.id = 'snow-canvas';
+        canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;display:block';
+        document.getElementById('bg-layer').after(canvas);
+
+        if (showSnow !== false && showAnim) {
+          var ctx = canvas.getContext('2d');
+          var W, H, flakes = [], time = 0, running = true, raf;
+
+          function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+          window.addEventListener('resize', resize);
+          resize();
+          for (var i = 0; i < 180; i++) flakes.push({
+            x: Math.random() * W, y: Math.random() * H,
+            r: Math.random() * 3 + 0.5, speed: Math.random() * 1.2 + 0.3,
+            drift: Math.random() * 0.4 - 0.2, opacity: Math.random() * 0.5 + 0.25,
+            phase: Math.random() * 6.28, amp: Math.random() * 0.3 + 0.1
+          });
+          function anim() {
+            if (!running) return;
+            time += 0.01;
+            ctx.clearRect(0, 0, W, H);
+            for (var i = 0; i < flakes.length; i++) {
+              var f = flakes[i];
+              f.y += f.speed; f.x += f.drift + Math.sin(time + f.phase) * f.amp;
+              if (f.y > H + 5) { f.y = -f.r - 2; f.x = Math.random() * W; }
+              if (f.x > W + 5) f.x = -5; if (f.x < -5) f.x = W + 5;
+              ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, 6.28);
+              ctx.fillStyle = 'rgba(255,255,255,' + f.opacity + ')'; ctx.fill();
+            }
+            raf = requestAnimationFrame(anim);
+          }
+          anim();
+        }
+
+        const barFill = document.getElementById('barFill');
+        const statusText = document.getElementById('statusText');
+        const statusPct = document.getElementById('statusPct');
+
+       // Load saved theme (accent)
+       const savedTheme = await soul.getSetting('theme') || 'blue';
+       document.body.classList.remove(...Array.from(document.body.classList).filter(c=>c.startsWith('theme-')));
+       document.body.classList.add(`theme-${savedTheme}`);
+       document.body.classList.remove('app-paper','app-modern');
+
+       soul.onLaunchProgress(data => {
+         barFill.style.width = data.pct + '%';
+         statusText.textContent = data.msg;
+         statusPct.textContent = data.pct + '%';
+       });
+
+       soul.onLaunchFinished(async () => {
+         // --- Firebase Auth state check (shared with Soul website) ---
+         let firebaseUser = null;
+         try {
+           await new Promise((resolve) => {
+             const unsub = firebase.auth().onAuthStateChanged((user) => {
+               firebaseUser = user;
+               unsub();
+               resolve();
+             });
+           });
+         } catch (e) {
+           console.warn('[LOADING] Firebase auth check failed:', e);
+         }
+
+         const currentAccount = await soul.getSetting('currentAccount');
+
+         if (firebaseUser) {
+           // A Firebase account is signed in
+           if (!firebaseUser.emailVerified) {
+             // Not verified → verification screen
+             try { window.location.href = '../login/verify-email.html'; } catch (_) {}
+             return;
+           }
+           // Verified — check if Minecraft username is set
+           try {
+             const snap = await firebase.database().ref(`users/${firebaseUser.uid}`).once('value');
+             const profile = snap.val();
+             if (profile && profile.minecraftUsername) {
+               // Fully registered → persist session and go home
+               const account = {
+                 id: firebaseUser.uid,
+                 name: profile.minecraftUsername,
+                 email: firebaseUser.email,
+                 type: 'firebase',
+                 uid: firebaseUser.uid,
+                 minecraftUsername: profile.minecraftUsername,
+                 skin: `https://minotar.net/helm/${profile.minecraftUsername}/64.png`
+               };
+               await soul.setSetting('currentAccount', account);
+               let accounts = await soul.getSetting('accounts') || [];
+               if (!accounts.find(a => a.id === firebaseUser.uid && a.type === 'firebase')) {
+                 accounts.push(account);
+                 await soul.setSetting('accounts', accounts);
+               }
+               setTimeout(() => { try { window.location.href = '../home/home.html'; } catch (_) {} }, 400);
+               return;
+             }
+           } catch (_) {}
+           // Verified but no username → setup screen
+           await soul.setSetting('firebaseUid', firebaseUser.uid);
+           await soul.setSetting('firebaseEmail', firebaseUser.email);
+           setTimeout(() => { try { window.location.href = '../login/setup-username.html'; } catch (_) {} }, 400);
+           return;
+         }
+
+         // No Firebase user — fall back to launcher account (Microsoft / offline) or login
+         setTimeout(() => {
+           try { window.location.href = currentAccount ? '../home/home.html' : '../login/login.html'; } catch (_) {}
+         }, 400);
+       });
+
+        // Auto-Updater Integration (BLOCKING: boot pauses here until the
+        // update finishes downloading, then the app restarts to apply it)
+        const performUpdateCheck = () => {
+          return new Promise((resolve) => {
+            statusText.textContent = 'Checking for updates...';
+            statusPct.textContent = '--';
+            console.log('[UPDATER] Starting update check...');
+
+            // Minimum display time so the user can always see "Checking for updates..."
+            const minVisible = 600;
+
+            let startTime = Date.now();
+            let finished = false;
+            let downloadStarted = false;
+            let stallTimer = null;
+
+            const finish = () => {
+              if (finished) return;
+              finished = true;
+              if (stallTimer) clearTimeout(stallTimer);
+              const elapsed = Date.now() - startTime;
+              const remaining = Math.max(0, minVisible - elapsed);
+              setTimeout(resolve, remaining);
+            };
+
+            // Safety net: if NO update status arrives at all (offline / unreachable),
+            // don't hang boot — proceed. Cancelled as soon as any status lands.
+            let noStatusTimer = setTimeout(() => {
+              console.warn('[UPDATER] No update status received. Proceeding to launch.');
+              finish();
+            }, 15000);
+
+            // Stall watchdog: while a download runs, progress must keep flowing.
+            // Refreshed on every progress event; if the download stalls, proceed
+            // instead of hanging the loading screen forever.
+            const armStallWatchdog = () => {
+              if (stallTimer) clearTimeout(stallTimer);
+              stallTimer = setTimeout(() => {
+                console.warn('[UPDATER] Download stalled. Proceeding to launch.');
+                finish();
+              }, 10 * 60 * 1000);
+            };
+
+            soul.onUpdateStatus((data) => {
+              console.log('[UPDATER]', data);
+              if (noStatusTimer) { clearTimeout(noStatusTimer); noStatusTimer = null; }
+              statusText.textContent = data.msg;
+
+              if (data.status === 'downloading') {
+                downloadStarted = true;
+                armStallWatchdog();
+                barFill.style.width = data.pct + '%';
+                statusPct.textContent = data.pct + '%';
+              } else if (data.status === 'available') {
+                downloadStarted = true;
+                armStallWatchdog();
+                statusText.textContent = data.msg + ' Downloading...';
+                if (window.soul && typeof soul.openChangelog === 'function') {
+                  soul.openChangelog().catch(err => {
+                    console.warn('[UPDATER] Failed to open changelog:', err);
+                  });
+                }
+              } else if (data.status === 'downloaded') {
+                downloadStarted = true;
+                barFill.style.width = '100%';
+                statusPct.textContent = '100%';
+                statusText.textContent = 'Update downloaded! Restarting to apply...';
+                if (window.notifications) window.notifications.show('success', 'Update success!', 'The launcher will restart in a moment.');
+                // Main process restarts the app now. Fallback: if the restart
+                // somehow doesn't happen, don't hang — proceed after 10s.
+                if (stallTimer) clearTimeout(stallTimer);
+                stallTimer = setTimeout(() => {
+                  console.warn('[UPDATER] Restart did not trigger. Proceeding to launch.');
+                  finish();
+                }, 10000);
+             } else if (data.status === 'not-available') {
+                finish();
+              } else if (data.status === 'error') {
+                if (window.notifications) window.notifications.show('error', 'Update failed', data.error || 'Check console for details');
+                setTimeout(finish, 2000);
+              }
+             });
+
+            soul.checkForUpdates().catch(err => {
+              console.error('[UPDATER] Failed to trigger update check:', err);
+              finish();
+            });
+          });
+        };
+
+       const bgLayer = document.getElementById('bg-layer');
+       bgLayer.style.backgroundImage = "url('../../assets/backgrounds/snow-scene.png')";
+       window.addEventListener('mousemove', (e) => {
+         const x = (e.clientX / window.innerWidth - 0.5) * 20;
+         const y = (e.clientY / window.innerHeight - 0.5) * 20;
+         bgLayer.style.transform = `translate(${x}px, ${y}px)`;
+       });
+
+       try { 
+         console.log('Initiating boot sequence...');
+
+         // 1. Update check FIRST and fully blocking: if an update is found,
+         //    the loading screen pauses here with download progress until it
+         //    finishes (main process then restarts to apply it).
+         await performUpdateCheck();
+
+         // 2. Only boot the launcher once up to date (or update failed/offline).
+         await soul.startLaunch();
+       }
+       catch (e) { 
+         console.error('Boot sequence failed:', e);
+         statusText.textContent = 'Launch Failed: ' + (e.message || 'Unknown Error');
+         statusText.style.color = '#ff4444';
+       }
+     })();
+   </script>
+</body>
+</html>

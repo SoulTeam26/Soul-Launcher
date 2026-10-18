@@ -1,0 +1,22 @@
+Soul Launcher Update Notes
+
+v1.0.7 - October 16, 2026
+
+TEST BUILD:
+- Updater loading-screen blocking test
+
+v1.0.6 - October 16, 2026
+
+WHAT'S NEW:
+- Hero player showcase with random pose + staff rank badge
+- Big LAUNCH NOW button, Select Instance quick picker
+- Partnered servers with live player counts
+- Instance tools: duplicate, backup/restore, tags, groups, pack import/export
+- Shaderpacks, worlds and datapacks managers
+- Per-instance launch settings + crash doctor
+- Paper-only UI, responsive small-window layout
+- All data connected to admin panel
+
+UPDATER IMPROVEMENTS:
+- Loading screen now waits for updates to finish before opening
+- Fixed lfs download

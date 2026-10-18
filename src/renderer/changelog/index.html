@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What's New</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --paper:#121113; --paper-2:#0C0B0C; --paper-dim:#1A1818;
+            --ink:#F5F1ED; --muted:#8C8680; --bolt:#FF3B30; --line-dim:rgba(245,241,237,.18);
+            --tb: 38px;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            width: 100vw; height: 100vh; overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background: var(--paper); color: var(--ink);
+            user-select: none;
+        }
+        #titlebar {
+            -webkit-app-region: drag;
+            position: fixed; top: 0; left: 0; right: 0; height: var(--tb);
+            background: var(--paper-2);
+            border-bottom: 2px solid var(--ink);
+            display: flex; align-items: center; justify-content: space-between;
+            z-index: 3000;
+        }
+        .tb-left { display: flex; align-items: center; gap: 12px; padding-left: 14px; }
+        .tb-title { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+        .tb-controls { -webkit-app-region: no-drag; display: flex; height: var(--tb); }
+        .tb-btn { width: 42px; height: 100%; border: none; border-left:1px solid var(--line-dim); background: transparent; color: var(--ink); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.12s; font-size: 12px; }
+        .tb-btn:hover { background: var(--paper-dim); }
+        .tb-btn.tb-cls:hover { background: var(--bolt); color: var(--ink); }
+        #content {
+            margin-top: var(--tb);
+            height: calc(100vh - var(--tb));
+            display: flex;
+            flex-direction: column;
+            padding: 36px 44px;
+            overflow-y: auto;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 26px;
+        }
+        .header::before {
+            content: '';
+            width: 9px;
+            height: 9px;
+            background: var(--bolt);
+            flex-shrink: 0;
+        }
+        .header h1 {
+            font-family: 'Inter', sans-serif;
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: -.01em;
+            color: var(--ink);
+        }
+        .version-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: var(--paper-dim);
+            border: 1px solid var(--line-dim);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--bolt);
+            text-transform: uppercase;
+        }
+        .notes {
+            flex: 1;
+            line-height: 1.8;
+            font-size: 14px;
+            color: var(--ink);
+            opacity: .9;
+            user-select: text;
+        }
+        .notes-raw {
+            width: 100%;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            line-height: 1.8;
+            color: var(--ink);
+            opacity: .9;
+            user-select: text;
+        }
+        .footer {
+            margin-top: 26px;
+            padding-top: 18px;
+            border-top: 2px solid var(--line-dim);
+            display: flex;
+            justify-content: flex-end;
+        }
+        .footer button {
+            padding: 11px 26px;
+            background: var(--bolt);
+            border: 2px solid var(--ink);
+            color: var(--ink);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 12.5px;
+            letter-spacing: .03em;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 4px 4px 0 var(--paper-dim);
+            transition: transform .12s, box-shadow .12s;
+        }
+        .footer button:hover {
+            transform: translate(-2px,-2px);
+            box-shadow: 6px 6px 0 var(--paper-dim);
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--paper-2); }
+        ::-webkit-scrollbar-thumb { background: var(--paper-dim); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+    </style>
+</head>
+<body>
+    <div id="titlebar">
+        <div class="tb-left">
+            <span class="tb-title">What's New in Soul</span>
+        </div>
+        <div class="tb-controls">
+            <button class="tb-btn tb-cls" id="btn-close"><i class="fa-solid fa-circle-xmark"></i></button>
+        </div>
+    </div>
+    <div id="content">
+        <div class="header">
+            <h1>What's New</h1>
+        </div>
+        <div class="notes" id="notes-container">
+            <div style="opacity:0.5;text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>
+        </div>
+        <div class="footer">
+            <button id="btn-got-it">Got It</button>
+        </div>
+    </div>
+    <script>
+        document.getElementById('btn-close').onclick = () => { if (window.soul) soul.windowClose(); else window.close(); };
+        document.getElementById('btn-got-it').onclick = () => { if (window.soul) soul.windowClose(); else window.close(); };
+        async function loadNotes() {
+            try {
+                let text;
+                if (window.soul) {
+                    text = await window.soul.readUpdateNotes();
+                } else {
+                    const candidates = ['Update.txt', 'update.txt'];
+                    let response = null;
+                    for (const candidate of candidates) {
+                        response = await fetch(candidate, { cache: 'no-store' });
+                        if (response.ok) break;
+                    }
+                    if (!response || !response.ok) {
+                        throw new Error('Update notes file not found.');
+                    }
+                    text = await response.text();
+                }
+                const pre = document.createElement('pre');
+                pre.className = 'notes-raw';
+                pre.textContent = String(text || '').replace(/\r\n/g, '\n');
+                const container = document.getElementById('notes-container');
+                container.innerHTML = '';
+                container.appendChild(pre);
+            } catch (e) {
+                document.getElementById('notes-container').innerHTML = '<div style="opacity:0.5;text-align:center;padding:40px;">No update notes available.</div>';
+            }
+        }
+        loadNotes();
+    </script>
+</body>
+</html>

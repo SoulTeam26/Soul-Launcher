@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soul Launcher - Minecraft Username</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../soul-core.css">
+    <link rel="stylesheet" href="../error-handling/Notification.css">
+    <link rel="stylesheet" href="login.css">
+    <link rel="stylesheet" href="auth.css">
+    <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
+</head>
+<body class="theme-blue">
+     <!-- CUSTOM TITLEBAR -->
+     <div id="titlebar">
+         <div class="tb-left">
+             <img src="../../assets/icons/icon.png" class="tb-icon" alt="Soul Icon">
+             <span class="tb-title">Soul Launcher - Minecraft Username</span>
+         </div>
+        <div class="tb-controls">
+            <button class="tb-btn" id="btn-min"><i class="fa-solid fa-square-minus"></i></button>
+            <button class="tb-btn" id="btn-max"><i class="fa-solid fa-window-maximize"></i></button>
+            <button class="tb-btn tb-cls" id="btn-close"><i class="fa-solid fa-circle-xmark"></i></button>
+        </div>
+    </div>
+
+    <div class="auth-bg"></div>
+    <div class="auth-bg-overlay"></div>
+
+    <div id="app">
+        <div class="ghost-layer"></div>
+        <div id="login-overlay" class="hidden">
+            <div class="loader-circle"></div>
+            <p id="overlay-msg">Saving username...</p>
+        </div>
+        <div class="auth-container">
+            <div class="auth-box">
+                <div class="auth-brand"><span class="hl">SOUL</span>LAUNCHER</div>
+                <h1>Minecraft Username</h1>
+                <p>Choose your Minecraft username for your Soul account</p>
+                <div class="soul-mention">You are setting up your <b>Soul</b> account</div>
+
+                <div id="auth-error" class="auth-error"></div>
+                <div id="auth-success" style="margin-top:12px;padding:10px 14px;background:rgba(34,197,94,0.15);
+                  border:2px solid rgba(34,197,94,0.35);color:#86efac;font-family:'JetBrains Mono',monospace;
+                  font-size:12px;letter-spacing:.03em;display:none;border-radius:var(--radius);"></div>
+
+                <div class="auth-input-group">
+                    <input type="text" id="mc-username" placeholder="e.g. Arnav404" required
+                      maxlength="16" autocomplete="off">
+                    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:6px;">
+                      3–16 characters. Letters, numbers, and underscores only. Case-insensitive.
+                    </div>
+                </div>
+
+                <button id="btn-save-username" class="auth-btn">
+                    <i class="fa-solid fa-save"></i>
+                    <span>Save Username</span>
+                </button>
+
+                <div class="auth-divider"><span>OR</span></div>
+
+                <button id="btn-back-to-login" class="auth-btn secondary">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Back to Login</span>
+                </button>
+
+                <div class="auth-links">
+                    <a href="#" class="auth-link" id="btn-logout">Logout</a>
+                </div>
+            </div>
+            <div class="footer-text">
+                <i class="fa-solid fa-copyright"></i> 2026 Soul Launcher. All rights reserved.
+            </div>
+        </div>
+    </div>
+
+    <script src="../error-handling/Notification.js"></script>
+    <script>
+    // --- Global error safety: never let an unhandled error close the launcher ---
+    window.onerror = function (msg, url, line) {
+        console.error('[USERNAME] Unhandled error:', msg, 'at', url, ':', line);
+        try { window.notifications.show('error', 'Error', String(msg)); } catch (_) {}
+        return true;
+    };
+    window.onunhandledrejection = function (ev) {
+        console.error('[USERNAME] Unhandled rejection:', ev.reason);
+        try { window.notifications.show('error', 'Error', String(ev.reason && ev.reason.message ? ev.reason.message : ev.reason)); } catch (_) {}
+    };
+
+    (async () => {
+        // Window Controls
+        document.getElementById('btn-min').onclick = () => window.soul.minimize();
+        document.getElementById('btn-max').onclick = () => window.soul.maximize();
+        document.getElementById('btn-close').onclick = () => window.soul.close();
+
+        // Theme
+        const savedTheme = await window.soul.getSetting('theme');
+        if (savedTheme) {
+            document.body.classList.remove(...Array.from(document.body.classList).filter(c=>c.startsWith('theme-')));
+            document.body.classList.add(`theme-${savedTheme}`);
+        }
+        document.body.classList.remove('app-paper','app-modern');
+
+        // --- Firebase init ---
+        let auth, db;
+        try {
+            ({ auth, db } = initFirebase());
+        } catch (e) {
+            console.error('[FIREBASE] Init failed:', e);
+            window.notifications.show('error', 'Firebase Error', 'Authentication service unavailable.');
+            return;
+        }
+
+        // --- UI elements ---
+        const usernameInput = document.getElementById('mc-username');
+        const saveBtn = document.getElementById('btn-save-username');
+        const backBtn = document.getElementById('btn-back-to-login');
+        const logoutBtn = document.getElementById('btn-logout');
+        const errorEl = document.getElementById('auth-error');
+        const successEl = document.getElementById('auth-success');
+        const loginOverlay = document.getElementById('login-overlay');
+        const overlayMsg = document.getElementById('overlay-msg');
+
+        const showError = (msg) => { errorEl.textContent = msg; errorEl.classList.add('show'); successEl.classList.remove('show'); };
+        const showSuccess = (msg) => { successEl.textContent = msg; successEl.classList.add('show'); errorEl.classList.remove('show'); };
+        const clearMessages = () => { errorEl.classList.remove('show'); successEl.classList.remove('show'); };
+
+        const showLoader = (msg) => { overlayMsg.textContent = msg; loginOverlay.classList.remove('hidden'); };
+        const hideLoader = () => loginOverlay.classList.add('hidden');
+
+        const MC_REGEX = /^[a-zA-Z0-9_]{3,16}$/;
+
+        // Navigation
+        backBtn.onclick = () => { try { window.location.href = 'login.html'; } catch (_) {} };
+        logoutBtn.onclick = async (e) => {
+            e.preventDefault();
+            try { await auth.signOut(); } catch (_) {}
+            try { window.location.href = 'login.html'; } catch (_) {}
+        };
+
+        // --- Current user ---
+        let currentUser = null;
+        let firebaseUid = null;
+
+        try { firebaseUid = await window.soul.getSetting('firebaseUid'); } catch (_) {}
+
+        auth.onAuthStateChanged(async (user) => {
+            currentUser = user;
+            if (!user) {
+                try { window.location.href = 'login.html'; } catch (_) {}
+                return;
+            }
+            firebaseUid = user.uid;
+            try {
+                await window.soul.setSetting('firebaseUid', user.uid);
+                await window.soul.setSetting('firebaseEmail', user.email);
+            } catch (_) {}
+
+            // If user already has a username, they're done — go home
+            try {
+                const profileSnap = await db.ref(`users/${user.uid}`).once('value');
+                const profile = profileSnap.val();
+                if (profile && profile.minecraftUsername) {
+                    const account = {
+                        id: user.uid,
+                        name: profile.minecraftUsername,
+                        email: user.email,
+                        type: 'firebase',
+                        uid: user.uid,
+                        minecraftUsername: profile.minecraftUsername,
+                        skin: `https://minotar.net/helm/${profile.minecraftUsername}/64.png`
+                    };
+                    await window.soul.setSetting('currentAccount', account);
+                    let accounts = await window.soul.getSetting('accounts') || [];
+                    if (!accounts.find(a => a.id === user.uid && a.type === 'firebase')) {
+                        accounts.push(account);
+                        await window.soul.setSetting('accounts', accounts);
+                    }
+                    try { window.location.href = '../home/home.html'; } catch (_) {}
+                }
+            } catch (_) {}
+        });
+
+        if (!currentUser && !firebaseUid) {
+            try { window.location.href = 'login.html'; } catch (_) {}
+        }
+
+        // --- Username availability check ---
+        async function checkUsernameAvailable(username) {
+            const lower = username.toLowerCase();
+            const snap = await db.ref(`minecraftUsernames/${lower}`).once('value');
+            const data = snap.val();
+            if (!data) return { available: true, lower };
+            if (data.uid === currentUser.uid) return { available: true, lower, owns: true };
+            return { available: false, lower, ownerUid: data.uid };
+        }
+
+        // --- Atomic username claim via Firebase transaction (with fallback) ---
+        async function claimUsername(username, lower) {
+            const usernameRef = db.ref(`minecraftUsernames/${lower}`);
+
+            // Try Firebase transaction for atomic claim
+            if (typeof usernameRef.runTransaction === 'function') {
+                const result = await usernameRef.runTransaction((currentData) => {
+                    if (currentData === null) {
+                        return { uid: currentUser.uid };
+                    }
+                    if (currentData && currentData.uid === currentUser.uid) {
+                        return currentData;
+                    }
+                    return undefined;
+                });
+                return result;
+            }
+
+            // Fallback: check-then-set (used if runTransaction is unavailable)
+            const snap = await usernameRef.once('value');
+            const data = snap.val();
+            if (data === null) {
+                await usernameRef.set({ uid: currentUser.uid });
+                return { committed: true };
+            }
+            if (data && data.uid === currentUser.uid) {
+                return { committed: true };
+            }
+            return { committed: false };
+        }
+
+        // --- Save username ---
+        saveBtn.onclick = async () => {
+            const username = usernameInput.value.trim();
+            clearMessages();
+
+            if (!MC_REGEX.test(username)) {
+                showError('Invalid Minecraft username. Use 3–16 characters: letters, numbers, underscores only.');
+                return;
+            }
+            if (!currentUser) {
+                showError('Not signed in. Please log in again.');
+                try { window.location.href = 'login.html'; } catch (_) {}
+                return;
+            }
+
+            showLoader('Checking username...');
+            saveBtn.disabled = true;
+
+            try {
+                const lower = username.toLowerCase();
+
+                const avail = await checkUsernameAvailable(username);
+                if (!avail.available) {
+                    hideLoader();
+                    saveBtn.disabled = false;
+                    showError('This Minecraft username is already taken.');
+                    return;
+                }
+
+                const txResult = await claimUsername(username, lower);
+                if (!txResult.committed) {
+                    hideLoader();
+                    saveBtn.disabled = false;
+                    showError('This Minecraft username is already taken (claimed by another user).');
+                    return;
+                }
+
+                // Release old username index if changing
+                const profileSnap = await db.ref(`users/${currentUser.uid}`).once('value');
+                const existingProfile = profileSnap.val();
+                if (existingProfile && existingProfile.minecraftUsernameLower &&
+                    existingProfile.minecraftUsernameLower !== lower) {
+                    try {
+                        await db.ref(`minecraftUsernames/${existingProfile.minecraftUsernameLower}`).remove();
+                    } catch (_) {}
+                }
+
+                await db.ref(`users/${currentUser.uid}`).set({
+                    email: currentUser.email,
+                    minecraftUsername: username,
+                    minecraftUsernameLower: lower,
+                    createdAt: existingProfile ? (existingProfile.createdAt || Date.now()) : Date.now()
+                });
+
+                showSuccess('Username saved successfully!');
+                window.notifications.show('success', 'Username Saved', `Your Minecraft username is "${username}"`);
+
+                const account = {
+                    id: currentUser.uid,
+                    name: username,
+                    email: currentUser.email,
+                    type: 'firebase',
+                    uid: currentUser.uid,
+                    minecraftUsername: username,
+                    skin: `https://minotar.net/helm/${username}/64.png`
+                };
+                await window.soul.setSetting('currentAccount', account);
+                let accounts = await window.soul.getSetting('accounts') || [];
+                if (!accounts.find(a => a.id === currentUser.uid && a.type === 'firebase')) {
+                    accounts.push(account);
+                    await window.soul.setSetting('accounts', accounts);
+                }
+
+                hideLoader();
+                saveBtn.disabled = false;
+                setTimeout(() => {
+                    try { window.location.href = '../home/home.html'; } catch (_) {}
+                }, 1000);
+
+            } catch (err) {
+                console.error('[USERNAME] Error:', err);
+                hideLoader();
+                saveBtn.disabled = false;
+                let msg = 'Failed to save username.';
+                if (err.code === 'auth/user-not-found') {
+                    msg = 'User session expired. Please log in again.';
+                } else if (err.message) {
+                    msg = 'Soul account error: ' + err.message;
+                }
+                showError(msg);
+            }
+        };
+
+        usernameInput.onkeypress = (e) => {
+            if (e.key === 'Enter') saveBtn.onclick();
+        };
+
+        // Discord RPC
+        window.soul.setRPC('Soul Launcher', 'Minecraft Username Setup');
+    })();
+    </script>
+</body>
+</html>

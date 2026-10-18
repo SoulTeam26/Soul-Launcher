@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soul Launcher - Verify Email</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../soul-core.css">
+    <link rel="stylesheet" href="../error-handling/Notification.css">
+    <link rel="stylesheet" href="login.css">
+    <link rel="stylesheet" href="auth.css">
+    <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
+</head>
+<body class="theme-blue">
+     <!-- CUSTOM TITLEBAR -->
+     <div id="titlebar">
+         <div class="tb-left">
+             <img src="../../assets/icons/icon.png" class="tb-icon" alt="Soul Icon">
+             <span class="tb-title">Soul Launcher - Verify Email</span>
+         </div>
+        <div class="tb-controls">
+            <button class="tb-btn" id="btn-min"><i class="fa-solid fa-square-minus"></i></button>
+            <button class="tb-btn" id="btn-max"><i class="fa-solid fa-window-maximize"></i></button>
+            <button class="tb-btn tb-cls" id="btn-close"><i class="fa-solid fa-circle-xmark"></i></button>
+        </div>
+    </div>
+
+    <div class="auth-bg"></div>
+    <div class="auth-bg-overlay"></div>
+
+    <div id="app">
+        <div class="ghost-layer"></div>
+        <div id="login-overlay" class="hidden">
+            <div class="loader-circle"></div>
+            <p id="overlay-msg">Checking...</p>
+        </div>
+        <div class="auth-container">
+            <div class="auth-box">
+                <div class="auth-brand"><span class="hl">SOUL</span>LAUNCHER</div>
+                <h1>Verify Your Email</h1>
+                <p id="verify-email-display">—</p>
+                <div class="soul-mention">You are verifying your <b>Soul</b> account</div>
+
+                <div id="auth-error" class="auth-error"></div>
+                <div id="auth-success" style="margin-top:12px;padding:10px 14px;background:rgba(34,197,94,0.15);
+                  border:2px solid rgba(34,197,94,0.35);color:#86efac;font-family:'JetBrains Mono',monospace;
+                  font-size:12px;letter-spacing:.03em;display:none;border-radius:var(--radius);"></div>
+
+                <div class="auth-input-group" style="gap:10px;">
+                    <button id="btn-check-verification" class="auth-btn">
+                        <i class="fa-solid fa-refresh"></i>
+                        <span>Check Verification</span>
+                    </button>
+                    <button id="btn-resend-verification" class="auth-btn secondary">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        <span>Resend Verification Email</span>
+                    </button>
+                </div>
+
+                <div class="auth-divider"><span>OR</span></div>
+
+                <button id="btn-back-to-login" class="auth-btn secondary">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Back to Login</span>
+                </button>
+
+                <div class="auth-links">
+                    <a href="#" class="auth-link" id="btn-logout">Logout</a>
+                </div>
+
+                <div class="auth-hint" id="verify-hint">
+                    Check your inbox (and spam folder) for the verification email, then click "Check Verification".
+                </div>
+                <div class="spam-warning">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <div><b>Important:</b> If you don't see the verification email in your inbox, please check your <b>Spam</b>, <b>Junk</b>, or <b>Promotions</b> folder.</div>
+                </div>
+            </div>
+            <div class="footer-text">
+                <i class="fa-solid fa-copyright"></i> 2026 Soul Launcher. All rights reserved.
+            </div>
+        </div>
+    </div>
+
+    <script src="../error-handling/Notification.js"></script>
+    <script>
+    // --- Global error safety: never let an unhandled error close the launcher ---
+    window.onerror = function (msg, url, line) {
+        console.error('[VERIFY] Unhandled error:', msg, 'at', url, ':', line);
+        try { window.notifications.show('error', 'Error', String(msg)); } catch (_) {}
+        return true;
+    };
+    window.onunhandledrejection = function (ev) {
+        console.error('[VERIFY] Unhandled rejection:', ev.reason);
+        try { window.notifications.show('error', 'Error', String(ev.reason && ev.reason.message ? ev.reason.message : ev.reason)); } catch (_) {}
+    };
+
+    (async () => {
+        // Window Controls
+        document.getElementById('btn-min').onclick = () => window.soul.minimize();
+        document.getElementById('btn-max').onclick = () => window.soul.maximize();
+        document.getElementById('btn-close').onclick = () => window.soul.close();
+
+        // Theme
+        const savedTheme = await window.soul.getSetting('theme');
+        if (savedTheme) {
+            document.body.classList.remove(...Array.from(document.body.classList).filter(c=>c.startsWith('theme-')));
+            document.body.classList.add(`theme-${savedTheme}`);
+        }
+        document.body.classList.remove('app-paper','app-modern');
+
+        // --- Firebase init ---
+        let auth, db;
+        try {
+            ({ auth, db } = initFirebase());
+        } catch (e) {
+            console.error('[FIREBASE] Init failed:', e);
+            window.notifications.show('error', 'Firebase Error', 'Authentication service unavailable.');
+            return;
+        }
+
+        // --- UI elements ---
+        const emailDisplay = document.getElementById('verify-email-display');
+        const errorEl = document.getElementById('auth-error');
+        const successEl = document.getElementById('auth-success');
+        const btnCheck = document.getElementById('btn-check-verification');
+        const btnResend = document.getElementById('btn-resend-verification');
+        const btnBack = document.getElementById('btn-back-to-login');
+        const btnLogout = document.getElementById('btn-logout');
+        const hintEl = document.getElementById('verify-hint');
+        const loginOverlay = document.getElementById('login-overlay');
+        const overlayMsg = document.getElementById('overlay-msg');
+
+        const showError = (msg) => { errorEl.textContent = msg; errorEl.classList.add('show'); successEl.classList.remove('show'); };
+        const showSuccess = (msg) => { successEl.textContent = msg; successEl.classList.add('show'); errorEl.classList.remove('show'); };
+        const clearMessages = () => { errorEl.classList.remove('show'); successEl.classList.remove('show'); };
+
+        const showLoader = (msg) => { overlayMsg.textContent = msg; loginOverlay.classList.remove('hidden'); };
+        const hideLoader = () => loginOverlay.classList.add('hidden');
+
+        // Navigation
+        btnBack.onclick = () => { try { window.location.href = 'login.html'; } catch (_) {} };
+        btnLogout.onclick = async (e) => {
+            e.preventDefault();
+            try { await auth.signOut(); } catch (_) {}
+            try { window.location.href = 'login.html'; } catch (_) {}
+        };
+
+        // --- Current user ---
+        let currentUser = null;
+
+        function updateUI(user) {
+            currentUser = user;
+            if (!user) {
+                if (emailDisplay) emailDisplay.textContent = 'Not signed in.';
+                if (btnCheck) btnCheck.disabled = true;
+                if (btnResend) btnResend.disabled = true;
+                return;
+            }
+            if (emailDisplay) emailDisplay.textContent = user.email || '—';
+            if (btnCheck) btnCheck.disabled = false;
+            if (btnResend) btnResend.disabled = false;
+            if (user.emailVerified) {
+                showSuccess('Email is verified! You can continue.');
+                if (hintEl) hintEl.textContent = 'Your email is verified. Proceeding to account setup...';
+            } else {
+                clearMessages();
+                if (hintEl) hintEl.textContent = 'Check your inbox (and spam folder) for the verification email.';
+            }
+        }
+
+        // Listen for auth state changes
+        try {
+            auth.onAuthStateChanged((user) => {
+                try { updateUI(user); } catch (_) {}
+                if (!user) {
+                    try { window.location.href = 'login.html'; } catch (_) {}
+                }
+            });
+        } catch (e) {
+            console.error('[VERIFY] Auth state listener failed:', e);
+        }
+
+        // If no user at all after a moment, go to login
+        setTimeout(() => {
+            if (!currentUser) {
+                try { window.location.href = 'login.html'; } catch (_) {}
+            }
+        }, 3000);
+
+        // --- Check Verification ---
+        btnCheck.onclick = async () => {
+            if (!currentUser) return;
+            showLoader('Reloading account...');
+            btnCheck.disabled = true;
+            try {
+                await currentUser.reload();
+                if (currentUser.emailVerified) {
+                    showSuccess('Email verified successfully!');
+                    hideLoader();
+
+                    // Check if Minecraft username is already set
+                    try {
+                        const profileSnap = await db.ref(`users/${currentUser.uid}`).once('value');
+                        const profile = profileSnap.val();
+                        if (profile && profile.minecraftUsername) {
+                            // Fully registered — persist session and open launcher
+                            const account = {
+                                id: currentUser.uid,
+                                name: profile.minecraftUsername || currentUser.email,
+                                email: currentUser.email,
+                                type: 'firebase',
+                                uid: currentUser.uid,
+                                minecraftUsername: profile.minecraftUsername,
+                                skin: `https://minotar.net/helm/${profile.minecraftUsername}/64.png`
+                            };
+                            await window.soul.setSetting('currentAccount', account);
+                            let accounts = await window.soul.getSetting('accounts') || [];
+                            if (!accounts.find(a => a.id === currentUser.uid && a.type === 'firebase')) {
+                                accounts.push(account);
+                                await window.soul.setSetting('accounts', accounts);
+                            }
+                            window.notifications.show('success', 'Welcome Back', `Logged in as ${account.name}`);
+                            setTimeout(() => { try { window.location.href = '../home/home.html'; } catch (_) {} }, 800);
+                        } else {
+                            // Verified but no username → setup screen
+                            await window.soul.setSetting('firebaseUid', currentUser.uid);
+                            await window.soul.setSetting('firebaseEmail', currentUser.email);
+                            try { window.location.href = 'setup-username.html'; } catch (_) {}
+                        }
+                    } catch (dbErr) {
+                        console.error('[DB] Profile read failed:', dbErr);
+                        await window.soul.setSetting('firebaseUid', currentUser.uid);
+                        await window.soul.setSetting('firebaseEmail', currentUser.email);
+                        try { window.location.href = 'setup-username.html'; } catch (_) {}
+                    }
+                } else {
+                    showError('Email is not yet verified. Please check your inbox and click the verification link.');
+                }
+            } catch (err) {
+                console.error('[VERIFY] Error:', err);
+                showError('Soul account error: ' + (err.message || 'Unknown error'));
+            } finally {
+                hideLoader();
+                btnCheck.disabled = false;
+            }
+        };
+
+        // --- Resend Verification Email ---
+        btnResend.onclick = async () => {
+            if (!currentUser) return;
+            showLoader('Sending verification email...');
+            btnResend.disabled = true;
+            try {
+                await currentUser.sendEmailVerification();
+                showSuccess('Verification email resent! Please check your inbox (and spam folder).');
+                window.notifications.show('info', 'Email Sent', 'A new verification email has been sent.');
+            } catch (err) {
+                console.error('[RESEND] Error:', err);
+                let msg = 'Failed to resend verification email.';
+                if (err.code === 'auth/too-many-requests') {
+                    msg = 'Too many requests. Please wait a moment before trying again.';
+                } else if (err.code && err.code.startsWith('auth/')) {
+                    msg = 'Soul account error: ' + err.message;
+                } else if (err.message) {
+                    msg = err.message;
+                }
+                showError(msg);
+            } finally {
+                hideLoader();
+                btnResend.disabled = false;
+            }
+        };
+
+        // Discord RPC
+        window.soul.setRPC('Soul Launcher', 'Email Verification Screen');
+    })();
+    </script>
+</body>
+</html>

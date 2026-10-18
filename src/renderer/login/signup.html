@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soul Launcher - Create Account</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../soul-core.css">
+    <link rel="stylesheet" href="../error-handling/Notification.css">
+    <link rel="stylesheet" href="login.css">
+    <link rel="stylesheet" href="auth.css">
+    <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
+</head>
+<body class="theme-blue">
+     <!-- CUSTOM TITLEBAR -->
+     <div id="titlebar">
+         <div class="tb-left">
+             <img src="../../assets/icons/icon.png" class="tb-icon" alt="Soul Icon">
+             <span class="tb-title">Soul Launcher - Create Account</span>
+         </div>
+        <div class="tb-controls">
+            <button class="tb-btn" id="btn-min"><i class="fa-solid fa-square-minus"></i></button>
+            <button class="tb-btn" id="btn-max"><i class="fa-solid fa-window-maximize"></i></button>
+            <button class="tb-btn tb-cls" id="btn-close"><i class="fa-solid fa-circle-xmark"></i></button>
+        </div>
+    </div>
+
+    <div class="auth-bg"></div>
+    <div class="auth-bg-overlay"></div>
+
+    <div id="app">
+        <div class="ghost-layer"></div>
+        <div id="login-overlay" class="hidden">
+            <div class="loader-circle"></div>
+            <p id="overlay-msg">Creating account...</p>
+        </div>
+        <div class="auth-container">
+            <div class="auth-box">
+                <div class="auth-brand"><span class="hl">SOUL</span>LAUNCHER</div>
+                <h1>Create Account</h1>
+                <p>Join Soul with your email</p>
+                <div class="soul-mention">You are creating a <b>Soul</b> account</div>
+
+                <div id="auth-error" class="auth-error"></div>
+
+                <form id="signup-form" class="auth-input-group">
+                    <input type="email" id="signup-email" placeholder="Email address" required autocomplete="email">
+                    <input type="password" id="signup-password" placeholder="Password (6+ chars)" required autocomplete="new-password" minlength="6">
+                    <input type="password" id="signup-password-confirm" placeholder="Confirm Password" required autocomplete="new-password">
+                    <button type="submit" id="btn-signup-submit" class="auth-btn signup">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <span>Create Account</span>
+                    </button>
+                </form>
+
+                <div class="auth-divider"><span>OR</span></div>
+
+                <button id="btn-back-to-login" class="auth-btn secondary">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Back to Login</span>
+                </button>
+
+                <div class="auth-links">
+                    <a href="#" class="auth-link" id="btn-login-link">Already have an account? Sign in</a>
+                </div>
+
+                <div class="auth-hint">
+                    A verification email will be sent. You must verify your email before signing in.
+                </div>
+                <div class="spam-warning">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <div><b>Important:</b> If you don't see the verification email in your inbox, please check your <b>Spam</b>, <b>Junk</b>, or <b>Promotions</b> folder.</div>
+                </div>
+            </div>
+            <div class="footer-text">
+                <i class="fa-solid fa-copyright"></i> 2026 Soul Launcher. All rights reserved.
+            </div>
+        </div>
+    </div>
+
+    <script src="../error-handling/Notification.js"></script>
+    <script>
+    // --- Global error safety: never let an unhandled error close the launcher ---
+    window.onerror = function (msg, url, line) {
+        console.error('[SIGNUP] Unhandled error:', msg, 'at', url, ':', line);
+        try { window.notifications.show('error', 'Error', String(msg)); } catch (_) {}
+        return true;
+    };
+    window.onunhandledrejection = function (ev) {
+        console.error('[SIGNUP] Unhandled rejection:', ev.reason);
+        try { window.notifications.show('error', 'Error', String(ev.reason && ev.reason.message ? ev.reason.message : ev.reason)); } catch (_) {}
+    };
+
+    (async () => {
+        // Window Controls
+        document.getElementById('btn-min').onclick = () => window.soul.minimize();
+        document.getElementById('btn-max').onclick = () => window.soul.maximize();
+        document.getElementById('btn-close').onclick = () => window.soul.close();
+
+        // Theme
+        const savedTheme = await window.soul.getSetting('theme');
+        if (savedTheme) {
+            document.body.classList.remove(...Array.from(document.body.classList).filter(c=>c.startsWith('theme-')));
+            document.body.classList.add(`theme-${savedTheme}`);
+        }
+        document.body.classList.remove('app-paper','app-modern');
+
+        // --- Firebase init ---
+        let auth;
+        try {
+            ({ auth } = initFirebase());
+        } catch (e) {
+            console.error('[FIREBASE] Init failed:', e);
+            window.notifications.show('error', 'Firebase Error', 'Authentication service unavailable.');
+            return;
+        }
+
+        // --- UI elements ---
+        const form = document.getElementById('signup-form');
+        const emailInput = document.getElementById('signup-email');
+        const passwordInput = document.getElementById('signup-password');
+        const confirmInput = document.getElementById('signup-password-confirm');
+        const submitBtn = document.getElementById('btn-signup-submit');
+        const errorEl = document.getElementById('auth-error');
+        const loginOverlay = document.getElementById('login-overlay');
+        const overlayMsg = document.getElementById('overlay-msg');
+
+        const showError = (msg) => {
+            errorEl.textContent = msg;
+            errorEl.classList.add('show');
+        };
+        const hideError = () => errorEl.classList.remove('show');
+
+        const showLoader = (msg) => { overlayMsg.textContent = msg; loginOverlay.classList.remove('hidden'); };
+        const hideLoader = () => loginOverlay.classList.add('hidden');
+
+        // Navigation
+        document.getElementById('btn-back-to-login').onclick = () => {
+            window.location.href = 'login.html';
+        };
+        document.getElementById('btn-login-link').onclick = (e) => {
+            e.preventDefault();
+            window.location.href = 'email-login.html';
+        };
+
+        // --- Sign Up ---
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            hideError();
+
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            const confirm = confirmInput.value;
+
+            if (!email || !password || !confirm) {
+                showError('Please fill in all fields.');
+                return;
+            }
+            if (password !== confirm) {
+                showError('Passwords do not match.');
+                return;
+            }
+            if (password.length < 6) {
+                showError('Password must be at least 6 characters.');
+                return;
+            }
+
+            showLoader('Creating account...');
+            submitBtn.disabled = true;
+
+            try {
+                const userCred = await auth.createUserWithEmailAndPassword(email, password);
+                const user = userCred.user;
+
+                // Send email verification (Firebase sends the email from its servers;
+                // the user clicks the link in their inbox, then returns to click
+                // "Check Verification" in the launcher).
+                // If sending fails, the account still exists — user can log in and resend.
+                try {
+                    await user.sendEmailVerification();
+                } catch (verErr) {
+                    console.error('[SIGNUP] Verification email send failed:', verErr);
+                    window.notifications.show('warning', 'Verification Email Failed',
+                        'Account created but verification email could not be sent. Please log in and resend.');
+                }
+
+                hideLoader();
+                window.notifications.show('success', 'Account Created',
+                    'A verification email has been sent to ' + email + '. Please check your inbox (and spam folder) before signing in.');
+                setTimeout(() => {
+                    try { window.location.href = 'verify-email.html'; } catch (navErr) {
+                        console.error('[SIGNUP] Navigate failed:', navErr);
+                        window.notifications.show('error', 'Navigation failed', 'Please go to Verify Email manually.');
+                    }
+                }, 800);
+
+            } catch (err) {
+                console.error('[SIGNUP] Error:', err);
+                hideLoader();
+                submitBtn.disabled = false;
+                if (err.code === 'auth/email-already-in-use') {
+                    // Account already exists (possibly unverified) — redirect to login
+                    showError('An account with this email already exists. Please log in instead.');
+                    setTimeout(() => {
+                        try { window.location.href = 'email-login.html?email=' + encodeURIComponent(email); } catch (_) {}
+                    }, 1200);
+                } else if (err.code === 'auth/invalid-email') {
+                    showError('Invalid email address.');
+                } else if (err.code === 'auth/weak-password') {
+                    showError('Password is too weak.');
+                } else if (err.code === 'auth/too-many-requests') {
+                    showError('Too many requests. Please wait a moment before creating another account.');
+                } else if (err.code && err.code.startsWith('auth/')) {
+                    showError('Soul account error: ' + err.message);
+                } else if (err.message) {
+                    showError(err.message);
+                } else {
+                    showError('Account creation failed. Please try again.');
+                }
+            }
+        };
+
+        // Discord RPC
+        window.soul.setRPC('Soul Launcher', 'Create Account Screen');
+    })();
+    </script>
+</body>
+</html>

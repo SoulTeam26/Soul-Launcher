@@ -1,0 +1,44 @@
+/* SOUL LAUNCHER - NOTIFICATION STYLES */
+#notification-container{
+    position:fixed;top:52px;right:16px;z-index:9999;
+    display:flex;flex-direction:column;gap:10px;pointer-events:none;
+}
+.notification{
+    pointer-events:all;min-width:320px;max-width:400px;
+    background:var(--paper-2,#0C0B0C);border:2px solid var(--ink,#F5F1ED);
+    padding:14px 16px;display:flex;align-items:center;gap:14px;
+    box-shadow:5px 5px 0 var(--paper-dim,#1A1818);
+    animation:slideIn .3s ease forwards;
+}
+.notification.hide{animation:slideOut .3s ease forwards;}
+@keyframes slideIn{from{transform:translateX(120%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+@keyframes slideOut{from{transform:translateX(0);opacity:1;}to{transform:translateX(120%);opacity:0;}}
+
+.notification-icon{font-size:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.notification.error .notification-icon{color:#FF3B30;}
+.notification.warning .notification-icon{color:#FFB13B;}
+.notification.success .notification-icon{color:#3ddc84;}
+.notification.info .notification-icon{color:#3B9CFF;}
+
+.notification.error{border-left-width:5px;border-left-color:#FF3B30;}
+.notification.warning{border-left-width:5px;border-left-color:#FFB13B;}
+.notification.success{border-left-width:5px;border-left-color:#3ddc84;}
+.notification.info{border-left-width:5px;border-left-color:#3B9CFF;}
+
+.notification-content{flex:1;}
+.notification-title{
+    font-family:'Inter',sans-serif;font-weight:700;font-size:13.5px;
+    text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;color:var(--ink,#F5F1ED);
+}
+.notification-message{font-size:13px;color:var(--gray4,#8C8680);line-height:1.4;}
+.notification-actions{display:flex;gap:8px;}
+.notification-btn{
+    background:transparent;border:none;color:var(--gray4,#8C8680);cursor:pointer;
+    font-size:14px;padding:4px;transition:color .15s;
+}
+.notification-btn:hover{color:var(--white,#F5F1ED);}
+
+@media (max-width:480px){
+    #notification-container{left:16px;right:16px;}
+    .notification{min-width:0;width:100%;}
+}

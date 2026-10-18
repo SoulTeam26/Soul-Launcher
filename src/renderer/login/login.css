@@ -1,0 +1,139 @@
+#app{height:calc(100vh - 48px);overflow:hidden;}
+.login-container{display:grid;grid-template-columns:1fr 1fr;height:100%;}
+
+/* ---------- left: login box ---------- */
+.login-left{position:relative;display:flex;flex-direction:column;justify-content:center;
+  align-items:center;padding:40px;border-right:2px solid var(--ink);
+  background:repeating-linear-gradient(135deg, transparent 0 28px, rgba(245,241,237,.035) 28px 29px);}
+.login-box{width:100%;max-width:380px;position:relative;z-index:2;}
+.login-brand{font-family:'Inter',sans-serif;font-weight:900;font-size:15px;letter-spacing:.06em;
+  color:var(--muted);margin-bottom:26px;}
+.login-brand .hl{background:var(--bolt);color:var(--ink);padding:1px 6px;margin-right:6px;}
+.login-box h1{font-family:'Inter',sans-serif;font-weight:900;font-size:34px;letter-spacing:-.02em;
+  margin:0 0 8px;color:var(--ink);}
+.login-box > p{color:var(--ink-soft);font-size:14.5px;margin:0 0 28px;}
+
+.login-buttons{display:flex;flex-direction:column;gap:14px;}
+.login-btn{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;
+  padding:15px 20px;border:2px solid var(--ink);background:var(--ink);color:var(--paper);
+  font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;letter-spacing:.03em;
+  text-transform:uppercase;cursor:pointer;transition:transform .12s,box-shadow .12s;
+  box-shadow:5px 5px 0 var(--bolt-deep);}
+.login-btn:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--bolt-deep);}
+.login-btn.offline{background:transparent;color:var(--ink);box-shadow:5px 5px 0 var(--paper-dim);}
+.login-btn.offline:hover{background:var(--ink);color:var(--paper);}
+.ms-logo{display:grid;grid-template-columns:1fr 1fr;gap:2px;width:16px;height:16px;}
+.ms-logo .sq{display:block;}
+.ms-logo .red{background:#f25022;} .ms-logo .green{background:#7fba00;}
+.ms-logo .blue{background:#00a4ef;} .ms-logo .yellow{background:#ffb900;}
+
+.divider{display:flex;align-items:center;gap:12px;margin:20px 0;
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--muted);}
+.divider::before,.divider::after{content:'';flex:1;height:2px;background:var(--line-dim);}
+
+.input-group{display:flex;flex-direction:column;gap:12px;}
+.input-group input{padding:14px 16px;background:var(--paper-2);border:2px solid var(--line-dim);
+  color:var(--ink);font-family:'Inter',sans-serif;font-size:14px;outline:none;}
+.input-group input:focus{border-color:var(--bolt);}
+.confirm-btn,.cancel-btn{padding:13px;border:2px solid var(--ink);font-family:'JetBrains Mono',monospace;
+  font-weight:700;font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;}
+.confirm-btn{background:var(--bolt);color:var(--ink);border-color:var(--bolt);}
+.cancel-btn{background:transparent;color:var(--ink-soft);}
+.cancel-btn:hover{background:var(--paper-dim);}
+
+/* ---------- account selection ---------- */
+.account-dropdown{position:relative;}
+.account-card{display:flex;align-items:center;gap:12px;padding:12px 14px;border:2px solid var(--line-dim);
+  background:var(--paper-2);cursor:pointer;transition:border-color .12s;}
+.account-card:hover,.account-card.active{border-color:var(--ink);}
+.account-card.trigger{justify-content:space-between;}
+.acc-avatar{width:36px;height:36px;border:2px solid var(--ink);object-fit:cover;}
+.acc-info{display:flex;flex-direction:column;flex:1;min-width:0;}
+.acc-name{font-weight:700;font-size:13.5px;color:var(--ink);}
+.acc-type{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);text-transform:uppercase;}
+.acc-actions,.acc-card-actions{display:flex;align-items:center;gap:10px;}
+.acc-remove-btn,.acc-select-btn{background:transparent;border:none;color:var(--muted);cursor:pointer;
+  font-size:13px;padding:4px;}
+.acc-remove-btn:hover{color:var(--bolt);}
+.acc-select-btn:hover{color:var(--ink);}
+.drop-arrow,.acc-arrow{color:var(--muted);font-size:11px;}
+.dropdown-list{position:absolute;top:calc(100% + 8px);left:0;right:0;background:var(--paper-2);
+  border:2px solid var(--ink);max-height:220px;overflow-y:auto;z-index:10;box-shadow:6px 6px 0 var(--paper-dim);}
+.dropdown-list .account-card{border:none;border-bottom:1px solid var(--line-dim);}
+.dropdown-list .account-card:last-child{border-bottom:none;}
+
+.footer-text{position:absolute;bottom:20px;font-family:'JetBrains Mono',monospace;font-size:10.5px;
+  color:var(--muted);z-index:2;}
+
+/* ---------- auth links (forgot password) ---------- */
+.auth-links{margin-top:18px;text-align:center;}
+.forgot-link{color:var(--bolt);font-family:'JetBrains Mono',monospace;font-size:12px;
+  letter-spacing:.04em;text-decoration:none;transition:opacity .12s;}
+.forgot-link:hover{opacity:0.7;text-decoration:underline;}
+
+/* ---------- signup button accent ---------- */
+.login-btn.signup{border-color:var(--bolt);background:var(--bolt);color:var(--ink);
+  box-shadow:5px 5px 0 var(--bolt-deep);}
+.login-btn.signup:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--bolt-deep);}
+
+/* ---------- background for auth pages ---------- */
+.auth-bg{position:fixed;inset:0;z-index:-1;background-image:url('../../assets/backgrounds/Login.jpg');
+  background-size:cover;background-position:center;background-repeat:no-repeat;}
+.auth-bg-overlay{position:fixed;inset:0;z-index:0;background:linear-gradient(180deg,
+  rgba(12,11,12,0.85) 0%, rgba(12,11,12,0.95) 60%, rgba(12,11,12,1) 100%);}
+
+/* ---------- soul mention ---------- */
+.soul-mention{margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:12px;
+  color:var(--ink-soft);text-align:center;letter-spacing:.03em;}
+.soul-mention b{color:var(--bolt);}
+
+/* ---------- spam warning ---------- */
+.spam-warning{margin-top:14px;padding:12px 14px;background:rgba(255,177,59,0.15);
+  border:2px solid rgba(255,177,59,0.35);color:#ffd166;font-family:'JetBrains Mono',monospace;
+  font-size:12px;letter-spacing:.03em;border-radius:var(--radius);display:flex;align-items:flex-start;gap:10px;}
+.spam-warning i{color:#ffb13b;font-size:14px;margin-top:2px;}
+.spam-warning b{color:#ffd166;}
+
+/* ---------- overlay loader ---------- */
+#login-overlay{position:fixed;inset:0;background:rgba(12,11,12,.92);z-index:100;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;}
+#login-overlay.hidden{display:none;}
+.loader-circle{width:42px;height:42px;border:3px solid var(--line-dim);border-top-color:var(--bolt);
+  border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+#overlay-msg{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ink-soft);letter-spacing:.04em;}
+
+/* ---------- right: slideshow ---------- */
+.login-right{position:relative;overflow:hidden;background:var(--paper-2);}
+.slideshow{position:absolute;inset:0;transition:transform .4s ease-out;}
+.slide{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;
+  filter:saturate(.55) brightness(.55) contrast(1.05);transition:opacity 1.2s ease;}
+.slide.active{opacity:1;}
+.slide-overlay{position:absolute;inset:0;background:linear-gradient(180deg, rgba(18,17,19,.3) 0%, rgba(18,17,19,.85) 100%);}
+.slide-content{position:absolute;bottom:0;left:0;right:0;padding:40px;z-index:3;}
+.slide-content h2{font-family:'Inter',sans-serif;font-weight:900;font-size:26px;margin:0 0 8px;
+  color:var(--ink);transition:opacity .3s;}
+.slide-content p{color:var(--ink-soft);font-size:14px;max-width:420px;transition:opacity .3s;}
+
+/* ---------- modern (laby.net) overrides ---------- */
+body.app-modern .login-left{
+  border-right: 1px solid rgba(255,255,255,0.07);
+  background:
+    radial-gradient(600px 300px at 10% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 60%),
+    repeating-linear-gradient(135deg, transparent 0 28px, rgba(255,255,255,0.02) 28px 29px);
+}
+body.app-modern .login-btn{
+  border-radius: 12px;
+  border-width: 1px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.32);
+}
+body.app-modern .login-btn:hover{ transform: translateY(-1px); box-shadow: 0 12px 28px rgba(0,0,0,0.38); }
+body.app-modern .login-btn.offline{ background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.08); }
+body.app-modern .input-group input{ border-radius: 12px; border-width:1px; border-color: rgba(255,255,255,0.07); background: rgba(22,25,30,0.9); }
+body.app-modern .input-group input:focus{ border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+body.app-modern .confirm-btn,.app-modern .cancel-btn{ border-radius: 12px; border-width:1px; }
+body.app-modern .account-card{ border-radius: 12px; border-width:1px; background: rgba(22,25,30,0.92); box-shadow: 0 4px 16px rgba(0,0,0,0.22); }
+body.app-modern .acc-avatar{ border-radius: 8px; border-width:1px; }
+body.app-modern .dropdown-list{ border-radius: 14px; border-width:1px; box-shadow: 0 16px 40px rgba(0,0,0,0.45); overflow:hidden; }
+body.app-modern .divider::before,.app-modern .divider::after{ height:1px; background: rgba(255,255,255,0.07); }
+body.app-modern .loader-circle{ border-width:2px; }

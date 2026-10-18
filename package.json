@@ -1,0 +1,58 @@
+{
+  "name": "soul-launcher",
+  "version": "1.0.8",
+  "description": "Soul-Client-Launcher",
+  "author": "Soul Teams",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.17",
+    "all": "^0.0.0",
+    "axios": "^1.16.0",
+    "electron-store": "^8.1.0",
+    "electron-updater": "^6.8.3",
+    "graceful-fs": "^4.2.11",
+    "minecraft-launcher-core": "^3.18.2",
+    "msmc": "^5.0.5",
+    "skinview3d": "3.0.1",
+    "three": "0.147.0"
+  },
+  "devDependencies": {
+    "electron": "^28.2.1",
+    "electron-builder": "^24.13.3",
+    "rcedit": "^5.0.2"
+  },
+  "build": {
+    "appId": "com.soul.launcher",
+    "productName": "Soul Launcher",
+    "asar": true,
+    "directories": {
+      "output": "dist"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "SoulTeam26",
+        "repo": "Soul-Launcher"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "src/assets/icons/icon.ico",
+      "artifactName": "Soul-Launcher-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Soul Launcher",
+      "installerIcon": "src/assets/icons/icon.ico",
+      "uninstallerIcon": "src/assets/icons/icon.ico",
+      "license": "license.txt"
+    }
+  }
+}

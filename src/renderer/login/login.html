@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soul Launcher - Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../soul-core.css">
+    <link rel="stylesheet" href="../error-handling/Notification.css">
+    <link rel="stylesheet" href="login.css">
+    <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
+</head>
+<body class="theme-blue">
+     <!-- CUSTOM TITLEBAR -->
+     <div id="titlebar">
+         <div class="tb-left">
+             <img src="../../assets/icons/icon.png" class="tb-icon" alt="Soul Icon">
+             <span class="tb-title">Soul Launcher - Login</span>
+         </div>
+        <div class="tb-controls">
+            <button class="tb-btn" id="btn-min"><i class="fa-solid fa-square-minus"></i></button>
+            <button class="tb-btn" id="btn-max"><i class="fa-solid fa-window-maximize"></i></button>
+            <button class="tb-btn tb-cls" id="btn-close"><i class="fa-solid fa-circle-xmark"></i></button>
+        </div>
+    </div>
+
+    <div class="auth-bg"></div>
+    <div class="auth-bg-overlay"></div>
+
+    <div id="app">
+        <div class="ghost-layer"></div>
+        <div id="login-overlay" class="hidden">
+            <div class="loader-circle"></div>
+            <p id="overlay-msg">Connecting...</p>
+        </div>
+        <div class="login-container">
+            <!-- Left Panel: Login Options -->
+            <div class="login-left">
+                <div class="login-box">
+                    <div class="login-brand"><span class="hl">SOUL</span>LAUNCHER</div>
+                    <h1>Welcome back</h1>
+                    <p>Log in to your Soul account</p>
+                    <div class="soul-mention">You are logging into <b>Soul</b></div>
+                    
+                    <div class="login-buttons">
+                        <button id="btn-ms-login" class="login-btn microsoft">
+                            <div class="ms-logo">
+                                <span class="sq red"></span>
+                                <span class="sq green"></span>
+                                <span class="sq blue"></span>
+                                <span class="sq yellow"></span>
+                            </div>
+                            <span>Login with Microsoft</span>
+                        </button>
+                        
+                        <div class="divider">
+                            <span>OR</span>
+                        </div>
+                        
+                        <button id="btn-email-login" class="login-btn">
+                            <i class="fa-solid fa-envelope"></i>
+                            <span>Login with Email</span>
+                        </button>
+                        
+                        <button id="btn-signup" class="login-btn signup">
+                            <i class="fa-solid fa-user-plus"></i>
+                            <span>Create Account</span>
+                        </button>
+                        
+                        <div class="divider">
+                            <span>OR</span>
+                        </div>
+                        
+                        <button id="btn-offline-login" class="login-btn offline">
+                            <i class="fa-solid fa-user-secret"></i>
+                            <span>Login Offline</span>
+                        </button>
+                    </div>
+
+                    <div class="auth-links" style="margin-top:18px;text-align:center;">
+                        <a href="#" id="btn-forgot-pw" class="forgot-link">Forgot Password?</a>
+                    </div>
+
+                    <div id="account-selection" class="hidden">
+                        <div class="divider">
+                            <span>OR SWITCH ACCOUNT</span>
+                        </div>
+                        <div class="account-dropdown">
+                            <div id="selected-account-trigger" class="account-card trigger">
+                                <!-- Latest account injected here -->
+                                <i class="fa-solid fa-chevron-down drop-arrow"></i>
+                            </div>
+                            <div id="accounts-dropdown-list" class="dropdown-list hidden">
+                                <!-- Other accounts injected here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="offline-input-group" class="input-group hidden">
+                        <input type="text" id="offline-username" placeholder="Enter Username" maxlength="16">
+                        <button id="btn-offline-confirm" class="confirm-btn">Confirm</button>
+                        <button id="btn-offline-cancel" class="cancel-btn">Back</button>
+                    </div>
+                </div>
+                <div class="footer-text">
+                    <i class="fa-solid fa-copyright"></i> 2026 Soul Launcher. All rights reserved.
+                </div>
+            </div>
+
+            <!-- Right Panel: Slideshow -->
+            <div class="login-right">
+                <div class="slideshow">
+                    <div class="slide active" style="background-image: url('../../assets/Mc-backgrounds/slide1.png')"></div>
+                    <div class="slide" style="background-image: url('../../assets/Mc-backgrounds/slide2.png')"></div>
+                    <div class="slide" style="background-image: url('../../assets/Mc-backgrounds/slide3.png')"></div>
+                    <div class="slide" style="background-image: url('../../assets/Mc-backgrounds/slide4.png')"></div>
+                </div>
+                <div class="slide-overlay"></div>
+                <div class="ghost-layer"></div>
+                <div class="slide-content">
+                    <h2 id="slide-title">Best Performance</h2>
+                    <p id="slide-desc">Experience Minecraft like never before with Soul's optimizations.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../ghosts.js"></script>
+    <script>
+        (async () => {
+            try {
+                const anim = await window.soul.getSetting('animations');
+                document.body.classList.toggle('no-anim', anim === false);
+                if (anim !== false) spawnGhosts(4);
+            } catch (e) { spawnGhosts(4); }
+        })();
+    </script>
+    <script src="../error-handling/Notification.js"></script>
+    <script src="login.js"></script>
+</body>
+</html>

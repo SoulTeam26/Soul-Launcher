@@ -1,0 +1,371 @@
+<!-- 
+  SOUL LAUNCHER - DASHBOARD (underdevelopment.html)
+  Post-launch dashboard with theme persistence and account management.
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Soul Launcher - Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../error-handling/Notification.css">
+  <style>
+    :root {
+      --black: #0c0c0c;
+      --black2: #111111;
+      --gray1: #222222;
+      --gray2: #2e2e2e;
+      --gray3: #3a3a3a;
+      --gray4: #555555;
+      --gray5: #ffffff; /* Changed from #888888 to white as requested */
+      --white: #ffffff;
+      --red: #1971c2;
+      --red-dim: rgba(25, 113, 194, 0.12);
+      --tb: 48px;
+    }
+
+    /* THEME OVERRIDES */
+    body.theme-red { --red: #e03131; --red-dim: rgba(224, 49, 49, 0.2); }
+    body.theme-blue { --red: #1971c2; --red-dim: rgba(25, 113, 194, 0.2); }
+    body.theme-cherry { --red: #e0319c; --red-dim: rgba(224, 49, 156, 0.2); }
+    body.theme-purple { --red: #9c36b5; --red-dim: rgba(156, 54, 181, 0.2); }
+    
+    body.theme-red #bg-layer { background-image: url('../../assets/backgrounds/bg2red.svg') !important; }
+    body.theme-blue #bg-layer { background-image: url('../../assets/backgrounds/bg1.svg') !important; }
+    body.theme-purple #bg-layer { background-image: url('../../assets/backgrounds/bg3purple.svg') !important; }
+    body.theme-cherry #bg-layer { background-image: url('../../assets/backgrounds/bg4cherry.svg') !important; }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100vw; height: 100vh;
+      overflow: hidden;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--black);
+      color: var(--white);
+      user-select: none;
+    }
+
+    #titlebar {
+      -webkit-app-region: drag;
+      position: fixed;
+      top: 0; left: 0; right: 0; height: var(--tb);
+      background: var(--black);
+      border-bottom: 1px solid var(--gray1);
+      display: flex; align-items: center; justify-content: space-between;
+      z-index: 100;
+    }
+
+    .tb-left { display: flex; align-items: center; gap: 12px; padding-left: 15px; }
+    .tb-icon { width: 32px; height: 32px; object-fit: contain; }
+    .tb-title { font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 700; text-transform: uppercase; }
+    .tb-controls { -webkit-app-region: no-drag; display: flex; height: var(--tb); }
+    .tb-btn { width: 48px; height: 100%; border: none; background: transparent; color: var(--white); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .tb-btn:hover { background: var(--gray1); color: var(--white); }
+    .tb-btn.tb-cls:hover { background: var(--red); color: #fff; }
+
+    #app {
+      position: fixed;
+      top: var(--tb); left: 0; right: 0; bottom: 0;
+      background: var(--black);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+
+    #bg-layer {
+      position: absolute;
+      top: -5%; left: -5%; width: 110%; height: 110%;
+      background: url('../../assets/backgrounds/bg1.svg') no-repeat center center;
+      background-size: cover;
+      z-index: 0;
+      pointer-events: none;
+      transition: transform 0.1s ease-out, background-image 0.5s ease;
+    }
+
+    #app::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: radial-gradient(circle at center, var(--red-dim) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 1;
+      transition: background 0.5s ease;
+    }
+
+    /* USER PROFILE SECTION */
+    .user-profile {
+      position: absolute;
+      top: 20px; left: 20px;
+      display: flex; align-items: center; gap: 12px;
+      padding: 8px 16px;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid var(--gray1);
+      border-radius: 50px;
+      cursor: pointer;
+      z-index: 10;
+      backdrop-filter: blur(10px);
+      transition: all 0.2s;
+    }
+
+    .user-profile:hover { background: var(--gray1); border-color: var(--red); transform: translateY(-2px); }
+
+    .user-avatar { width: 36px; height: 36px; border-radius: 6px; background: var(--gray2); overflow: hidden; border: 1px solid var(--gray3); }
+    .user-avatar img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
+
+    .user-info { text-align: left; }
+    .user-name { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 14px; text-transform: uppercase; }
+    .user-status { font-size: 10px; color: var(--white); opacity: 0.8; text-transform: uppercase; }
+
+    /* ACCOUNT MODAL */
+    #account-modal {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: none; align-items: center; justify-content: center;
+        z-index: 200; backdrop-filter: blur(5px);
+    }
+    #account-modal.active { display: flex; }
+
+    .modal-content {
+        width: 400px;
+        background: var(--black2);
+        border: 1px solid var(--gray1);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .modal-title { font-family: 'Rajdhani', sans-serif; font-size: 20px; font-weight: 800; text-transform: uppercase; }
+
+    .account-list { display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto; margin-bottom: 20px; }
+    .account-item {
+        display: flex; align-items: center; gap: 12px; padding: 10px;
+        background: var(--gray1); border: 1px solid transparent; border-radius: 8px;
+        cursor: pointer; transition: all 0.2s;
+    }
+    .account-item:hover { border-color: var(--red); background: var(--gray2); }
+    .account-item.active { border-color: var(--red); background: var(--red-dim); }
+
+    .remove-btn { background: transparent; border: none; color: var(--white); opacity: 0.6; padding: 5px; cursor: pointer; margin-left: auto; }
+    .remove-btn:hover { color: #ff4d4d; opacity: 1; }
+
+    .add-account-btn {
+        width: 100%; padding: 12px;
+        background: transparent; border: 1px dashed var(--gray2); color: var(--white);
+        border-radius: 8px; cursor: pointer; font-family: 'Rajdhani', sans-serif; font-weight: 700; text-transform: uppercase;
+    }
+    .add-account-btn:hover { border-color: var(--red); color: var(--white); background: var(--red-dim); }
+
+    .dev-content { position: relative; z-index: 2; text-align: center; animation: fadeIn 0.8s ease; }
+    .dev-icon-wrap { position: relative; display: inline-block; }
+    .dev-icon { width: 120px; height: 120px; filter: drop-shadow(0 0 30px var(--red)); margin-bottom: 20px; }
+    .dev-construction-icon { 
+        position: absolute; bottom: 15px; right: -5px; 
+        background: var(--red); color: white; width: 32px; height: 32px; 
+        border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+        font-size: 16px; border: 3px solid var(--black); box-shadow: 0 0 15px var(--red);
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+    .dev-title { font-family: 'Rajdhani', sans-serif; font-size: 64px; font-weight: 800; letter-spacing: 0.1em; text-shadow: 0 0 30px var(--red); }
+    .dev-subtitle { font-size: 18px; color: var(--red); text-transform: uppercase; font-weight: 700; margin-bottom: 10px; }
+    .dev-info { margin-top: 30px; font-size: 16px; color: var(--white); line-height: 1.6; opacity: 0.9; }
+
+    #theme-select {
+        margin-top: 24px; padding: 10px 15px; background: var(--gray1); border: 1px solid var(--gray2);
+        color: var(--white); border-radius: 6px; cursor: pointer; font-family: 'Rajdhani', sans-serif;
+        font-weight: 700; text-transform: uppercase; outline: none; transition: all 0.2s;
+    }
+    #theme-select:hover { border-color: var(--red); }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      .rights { position: absolute; bottom: 30px; font-size: 16px; font-weight: 600; color: var(--white); opacity: 0.7; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+
+    /* RESPONSIVE STYLES */
+    @media (max-width: 900px) {
+        .dev-title { font-size: 48px; }
+        .dev-icon { width: 100px; height: 100px; }
+        .dev-info { font-size: 14px; padding: 0 20px; }
+    }
+
+    @media (max-width: 600px) {
+        .user-profile { top: 10px; left: 10px; padding: 6px 12px; }
+        .user-name { font-size: 12px; }
+        .dev-title { font-size: 32px; letter-spacing: 0.05em; }
+        .dev-subtitle { font-size: 14px; }
+        .modal-content { width: 90%; padding: 20px; }
+    }
+  </style>
+</head>
+
+<body>
+   <div id="titlebar">
+     <div class="tb-left">
+       <img src="../../assets/icons/icon.png" class="tb-icon" alt="Soul Icon">
+       <span class="tb-title">Soul Launcher - Dashboard</span>
+     </div>
+    <div class="tb-controls">
+      <button class="tb-btn" id="btn-min"><i class="fa-solid fa-square-minus"></i></button>
+      <button class="tb-btn" id="btn-max"><i class="fa-solid fa-window-maximize"></i></button>
+      <button class="tb-btn tb-cls" id="btn-close"><i class="fa-solid fa-circle-xmark"></i></button>
+    </div>
+  </div>
+
+  <div id="app">
+    <div id="bg-layer"></div>
+
+    <div class="user-profile" id="user-profile">
+        <div class="user-avatar" id="current-avatar">
+            <img src="https://minotar.net/helm/Steve/64.png">
+        </div>
+        <div class="user-info">
+            <div class="user-name" id="current-username">Loading...</div>
+            <div class="user-status" id="current-type">Offline</div>
+        </div>
+    </div>
+
+    <div id="account-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Switch Account</div>
+                <button class="remove-btn" id="close-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="account-list" id="account-list"></div>
+            <button class="add-account-btn" id="btn-add-account"><i class="fa-solid fa-plus"></i> Add Account</button>
+        </div>
+    </div>
+
+    <div class="dev-content">
+      <div class="dev-subtitle" id="greeting-text">Hello, Player!</div>
+      <div class="dev-icon-wrap">
+          <img title="icon" src="../../assets/icons/icon.png" class="dev-icon" />
+          <div class="dev-construction-icon">
+              <i class="fa-solid fa-person-digging"></i>
+          </div>
+      </div>
+      <div class="dev-title">SOUL LAUNCHER</div>
+      <div class="dev-subtitle" style="color: var(--white); opacity: 0.6; margin-top: 10px;">
+          <i class="fa-solid fa-screwdriver-wrench"></i> Under Development
+      </div>
+      <div class="dev-info">
+        Welcome to the premium Soul environment. <br>
+        The client is currently being optimized for your experience.
+      </div>
+      <select id="theme-select">
+          <option value="blue">Blue Theme</option>
+          <option value="red">Red Theme</option>
+          <option value="cherry">Pink Theme</option>
+          <option value="purple">Purple Theme</option>
+      </select>
+    </div>
+    <div class="rights">
+        <i class="fa-solid fa-copyright"></i> 2026 Soul Launcher
+    </div>
+  </div>
+
+  <script src="../error-handling/Notification.js"></script>
+  <script>
+    (async () => {
+      const { soul } = window;
+      document.getElementById('btn-min').onclick = () => soul.minimize();
+      document.getElementById('btn-max').onclick = () => soul.maximize();
+      document.getElementById('btn-close').onclick = () => soul.close();
+
+      const userProfile = document.getElementById('user-profile');
+      const accountModal = document.getElementById('account-modal');
+      const closeModal = document.getElementById('close-modal');
+      const accountList = document.getElementById('account-list');
+      const btnAddAccount = document.getElementById('btn-add-account');
+      const currentAvatar = document.getElementById('current-avatar').querySelector('img');
+      const currentUsername = document.getElementById('current-username');
+      const currentType = document.getElementById('current-type');
+      const greetingText = document.getElementById('greeting-text');
+
+      const updateProfileUI = (account) => {
+          if (!account) { window.location.href = '../login/login.html'; return; }
+          currentUsername.textContent = account.name;
+          currentType.textContent = account.type;
+          greetingText.textContent = `Hello, ${account.name}!`;
+          currentAvatar.src = account.type === 'offline' ? 'https://minotar.net/helm/Steve/64.png' : (account.skin || `https://minotar.net/helm/${account.name}/64.png`);
+      };
+
+      const renderAccounts = async () => {
+          const accounts = await soul.getSetting('accounts') || [];
+          const current = await soul.getSetting('currentAccount');
+          accountList.innerHTML = '';
+          accounts.forEach(acc => {
+              const item = document.createElement('div');
+              item.className = `account-item ${current && current.id === acc.id ? 'active' : ''}`;
+              const skinImg = acc.type === 'offline' ? 'https://minotar.net/helm/Steve/64.png' : (acc.skin || `https://minotar.net/helm/${acc.name}/64.png`);
+              item.innerHTML = `
+                  <div class="user-avatar" style="width: 30px; height: 30px;"><img src="${skinImg}"></div>
+                  <div class="user-info">
+                      <div class="user-name" style="font-size: 12px;">${acc.name}</div>
+                      <div class="user-status" style="font-size: 8px;">${acc.type}</div>
+                  </div>
+                  <button class="remove-btn" onclick="event.stopPropagation(); removeAccount('${acc.id}')"><i class="fa-solid fa-trash"></i></button>`;
+              item.onclick = async () => {
+                  await soul.setSetting('currentAccount', acc);
+                  updateProfileUI(acc);
+                  accountModal.classList.remove('active');
+                  window.notifications.show('success', 'Switched Account', `Now playing as ${acc.name}`);
+                  renderAccounts();
+              };
+              accountList.appendChild(item);
+          });
+      };
+
+      window.removeAccount = async (id) => {
+          let accounts = await soul.getSetting('accounts') || [];
+          const current = await soul.getSetting('currentAccount');
+          accounts = accounts.filter(a => a.id !== id);
+          await soul.setSetting('accounts', accounts);
+          if (current && current.id === id) {
+              if (accounts.length > 0) {
+                  await soul.setSetting('currentAccount', accounts[0]);
+                  updateProfileUI(accounts[0]);
+              } else {
+                  await soul.setSetting('currentAccount', null);
+                  window.location.href = '../login/login.html';
+              }
+          }
+          renderAccounts();
+      };
+
+      userProfile.onclick = () => { renderAccounts(); accountModal.classList.add('active'); };
+      closeModal.onclick = () => accountModal.classList.remove('active');
+      btnAddAccount.onclick = () => window.location.href = '../login/login.html';
+
+      const initialAccount = await soul.getSetting('currentAccount');
+      updateProfileUI(initialAccount);
+
+      const themeSelect = document.getElementById('theme-select');
+      const themes = ['red', 'blue', 'cherry', 'purple'];
+      const applyTheme = (themeName) => {
+        themes.forEach(t => document.body.classList.remove(`theme-${t}`));
+        document.body.classList.add(`theme-${themeName}`);
+        themeSelect.value = themeName;
+      };
+
+      const savedTheme = await soul.getSetting('theme') || 'blue';
+      applyTheme(savedTheme);
+      themeSelect.onchange = async () => {
+        applyTheme(themeSelect.value);
+        await soul.setSetting('theme', themeSelect.value);
+      };
+
+      const bgLayer = document.getElementById('bg-layer');
+      window.addEventListener('mousemove', (e) => {
+        const x = (e.clientX / window.innerWidth - 0.5) * 30;
+        const y = (e.clientY / window.innerHeight - 0.5) * 30;
+        bgLayer.style.transform = `translate(${x}px, ${y}px)`;
+      });
+    })();
+  </script>
+</body>
+</html>

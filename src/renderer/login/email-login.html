@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soul Launcher - Email Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../soul-core.css">
+    <link rel="stylesheet" href="../error-handling/Notification.css">
+    <link rel="stylesheet" href="login.css">
+    <link rel="stylesheet" href="auth.css">
+    <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
+</head>
+<body class="theme-blue">
+     <!-- CUSTOM TITLEBAR -->
+     <div id="titlebar">
+         <div class="tb-left">
+             <img src="../../assets/icons/icon.png" class="tb-icon" alt="Soul Icon">
+             <span class="tb-title">Soul Launcher - Email Login</span>
+         </div>
+        <div class="tb-controls">
+            <button class="tb-btn" id="btn-min"><i class="fa-solid fa-square-minus"></i></button>
+            <button class="tb-btn" id="btn-max"><i class="fa-solid fa-window-maximize"></i></button>
+            <button class="tb-btn tb-cls" id="btn-close"><i class="fa-solid fa-circle-xmark"></i></button>
+        </div>
+    </div>
+
+    <div class="auth-bg"></div>
+    <div class="auth-bg-overlay"></div>
+
+    <div id="app">
+        <div class="ghost-layer"></div>
+        <div id="login-overlay" class="hidden">
+            <div class="loader-circle"></div>
+            <p id="overlay-msg">Signing in...</p>
+        </div>
+        <div class="auth-container">
+            <div class="auth-box">
+                <div class="auth-brand"><span class="hl">SOUL</span>LAUNCHER</div>
+                <h1>Welcome back</h1>
+                <p>Sign in to your Soul account</p>
+                <div class="soul-mention">You are logging into <b>Soul</b></div>
+
+                <div id="auth-error" class="auth-error"></div>
+
+                <form id="email-login-form" class="auth-input-group">
+                    <input type="email" id="login-email" placeholder="Email address" required autocomplete="email">
+                    <input type="password" id="login-password" placeholder="Password" required autocomplete="current-password">
+                    <button type="submit" id="btn-login-submit" class="auth-btn">
+                        <i class="fa-solid fa-sign-in"></i>
+                        <span>Sign In</span>
+                    </button>
+                </form>
+
+                <div class="auth-divider"><span>OR</span></div>
+
+                <button id="btn-back-to-login" class="auth-btn secondary">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Back to Login</span>
+                </button>
+
+                <div class="auth-links">
+                    <a href="#" class="auth-link" id="btn-signup-link">Don't have an account? Create one</a><br>
+                    <a href="#" class="auth-link" id="btn-forgot-pw-link">Forgot Password?</a>
+                </div>
+            </div>
+            <div class="footer-text">
+                <i class="fa-solid fa-copyright"></i> 2026 Soul Launcher. All rights reserved.
+            </div>
+        </div>
+    </div>
+
+    <script src="../error-handling/Notification.js"></script>
+    <script>
+    // --- Global error safety: never let an unhandled error close the launcher ---
+    window.onerror = function (msg, url, line) {
+        console.error('[EMAIL-LOGIN] Unhandled error:', msg, 'at', url, ':', line);
+        try { window.notifications.show('error', 'Error', String(msg)); } catch (_) {}
+        return true;
+    };
+    window.onunhandledrejection = function (ev) {
+        console.error('[EMAIL-LOGIN] Unhandled rejection:', ev.reason);
+        try { window.notifications.show('error', 'Error', String(ev.reason && ev.reason.message ? ev.reason.message : ev.reason)); } catch (_) {}
+    };
+
+    (async () => {
+        // Window Controls
+        document.getElementById('btn-min').onclick = () => window.soul.minimize();
+        document.getElementById('btn-max').onclick = () => window.soul.maximize();
+        document.getElementById('btn-close').onclick = () => window.soul.close();
+
+        // Theme
+        const savedTheme = await window.soul.getSetting('theme');
+        if (savedTheme) {
+            document.body.classList.remove(...Array.from(document.body.classList).filter(c=>c.startsWith('theme-')));
+            document.body.classList.add(`theme-${savedTheme}`);
+        }
+        document.body.classList.remove('app-paper','app-modern');
+
+        // --- Firebase init ---
+        let auth, db;
+        try {
+            ({ auth, db } = initFirebase());
+        } catch (e) {
+            console.error('[FIREBASE] Init failed:', e);
+            window.notifications.show('error', 'Firebase Error', 'Authentication service unavailable.');
+            return;
+        }
+
+        // --- UI elements ---
+        const form = document.getElementById('email-login-form');
+        const emailInput = document.getElementById('login-email');
+        const passwordInput = document.getElementById('login-password');
+        const submitBtn = document.getElementById('btn-login-submit');
+        const errorEl = document.getElementById('auth-error');
+        const loginOverlay = document.getElementById('login-overlay');
+        const overlayMsg = document.getElementById('overlay-msg');
+
+        const showError = (msg) => {
+            errorEl.textContent = msg;
+            errorEl.classList.add('show');
+        };
+        const hideError = () => errorEl.classList.remove('show');
+
+        const showLoader = (msg) => { overlayMsg.textContent = msg; loginOverlay.classList.remove('hidden'); };
+        const hideLoader = () => loginOverlay.classList.add('hidden');
+
+        // Pre-fill email if coming from sign-up (email already exists)
+        const urlParams = new URLSearchParams(window.location.search);
+        const prefillEmail = urlParams.get('email');
+        if (prefillEmail) {
+            emailInput.value = prefillEmail;
+        }
+
+        // Navigation
+        document.getElementById('btn-back-to-login').onclick = () => {
+            try { window.location.href = 'login.html'; } catch (_) {}
+        };
+        document.getElementById('btn-signup-link').onclick = (e) => {
+            e.preventDefault();
+            try { window.location.href = 'signup.html'; } catch (_) {}
+        };
+        document.getElementById('btn-forgot-pw-link').onclick = (e) => {
+            e.preventDefault();
+            try { window.location.href = 'forgot-password.html'; } catch (_) {}
+        };
+
+        // --- Email + Password Login ---
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            hideError();
+
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+
+            if (!email || !password) {
+                showError('Please enter both email and password.');
+                return;
+            }
+
+            showLoader('Signing in...');
+            submitBtn.disabled = true;
+
+            try {
+                const userCred = await auth.signInWithEmailAndPassword(email, password);
+                const user = userCred.user;
+
+                // Check email verification
+                if (!user.emailVerified) {
+                    await auth.signOut();
+                    hideLoader();
+                    submitBtn.disabled = false;
+                    window.notifications.show('warning', 'Email Not Verified',
+                        'Please verify your email before signing in. Check your inbox.');
+                    try { window.location.href = 'verify-email.html'; } catch (_) {}
+                    return;
+                }
+
+                // Load profile from Firebase Realtime Database
+                const profileSnap = await db.ref(`users/${user.uid}`).once('value');
+                const profile = profileSnap.val();
+
+                if (!profile || !profile.minecraftUsername) {
+                    // Verified but no Minecraft username → setup screen
+                    hideLoader();
+                    submitBtn.disabled = false;
+                    await window.soul.setSetting('firebaseUid', user.uid);
+                    await window.soul.setSetting('firebaseEmail', user.email);
+                    try { window.location.href = 'setup-username.html'; } catch (_) {}
+                    return;
+                }
+
+                // Fully registered → persist session and open launcher
+                const account = {
+                    id: user.uid,
+                    name: profile.minecraftUsername || user.email,
+                    email: user.email,
+                    type: 'firebase',
+                    uid: user.uid,
+                    minecraftUsername: profile.minecraftUsername,
+                    skin: `https://minotar.net/helm/${profile.minecraftUsername}/64.png`
+                };
+
+                await window.soul.setSetting('currentAccount', account);
+                let accounts = await window.soul.getSetting('accounts') || [];
+                if (!accounts.find(a => a.id === user.uid && a.type === 'firebase')) {
+                    accounts.push(account);
+                    await window.soul.setSetting('accounts', accounts);
+                }
+
+                hideLoader();
+                window.notifications.show('success', 'Welcome Back', `Logged in as ${account.name}`);
+                setTimeout(() => {
+                    try { window.location.href = '../home/home.html'; } catch (_) {}
+                }, 800);
+
+            } catch (err) {
+                console.error('[LOGIN] Error:', err);
+                hideLoader();
+                submitBtn.disabled = false;
+                let msg = 'Login failed. Please try again.';
+                if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+                    msg = 'Invalid email or password.';
+                } else if (err.code === 'auth/invalid-email') {
+                    msg = 'Invalid email address.';
+                } else if (err.code === 'auth/too-many-requests') {
+                    msg = 'Too many failed attempts. Try again later.';
+                } else if (err.message) {
+                    msg = 'Soul account error: ' + err.message;
+                }
+                showError(msg);
+            }
+        };
+
+        // Discord RPC
+        window.soul.setRPC('Soul Launcher', 'Email Login Screen');
+    })();
+    </script>
+</body>
+</html>

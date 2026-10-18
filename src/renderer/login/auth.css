@@ -1,0 +1,50 @@
+/* ============================================================
+   SOUL LAUNCHER — SHARED AUTH PAGE STYLES
+   Matches the existing login.css design language.
+   ============================================================ */
+
+.auth-container{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;padding:40px 20px;}
+.auth-box{width:100%;max-width:380px;position:relative;z-index:2;}
+.auth-brand{font-family:'Inter',sans-serif;font-weight:900;font-size:15px;letter-spacing:.06em;
+  color:var(--muted);margin-bottom:26px;}
+.auth-brand .hl{background:var(--bolt);color:var(--ink);padding:1px 6px;margin-right:6px;}
+.auth-box h1{font-family:'Inter',sans-serif;font-weight:900;font-size:34px;letter-spacing:-.02em;
+  margin:0 0 8px;color:var(--ink);}
+.auth-box > p{color:var(--ink-soft);font-size:14.5px;margin:0 0 28px;}
+
+.auth-input-group{display:flex;flex-direction:column;gap:14px;}
+.auth-input-group input{padding:14px 16px;background:var(--paper-2);border:2px solid var(--line-dim);
+  color:var(--ink);font-family:'Inter',sans-serif;font-size:14px;outline:none;}
+.auth-input-group input:focus{border-color:var(--bolt);}
+
+.auth-btn{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;
+  padding:15px 20px;border:2px solid var(--ink);background:var(--ink);color:var(--paper);
+  font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;letter-spacing:.03em;
+  text-transform:uppercase;cursor:pointer;transition:transform .12s,box-shadow .12s;
+  box-shadow:5px 5px 0 var(--bolt-deep);}
+.auth-btn:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--bolt-deep);}
+.auth-btn.secondary{background:transparent;color:var(--ink);box-shadow:5px 5px 0 var(--paper-dim);}
+.auth-btn.secondary:hover{background:var(--ink);color:var(--paper);}
+.auth-btn:disabled{opacity:0.6;cursor:not-allowed;transform:none;box-shadow:5px 5px 0 var(--line-dim);}
+
+.auth-divider{display:flex;align-items:center;gap:12px;margin:24px 0;
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--muted);}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:2px;background:var(--line-dim);}
+
+.auth-links{text-align:center;margin-top:16px;}
+.auth-link{color:var(--bolt);font-family:'JetBrains Mono',monospace;font-size:12.5px;
+  letter-spacing:.04em;text-decoration:none;transition:opacity .12s;}
+.auth-link:hover{opacity:0.7;text-decoration:underline;}
+
+.auth-error{margin-top:12px;padding:10px 14px;background:rgba(239,68,68,0.15);
+  border:2px solid rgba(239,68,68,0.35);color:#fca5a5;font-family:'JetBrains Mono',monospace;
+  font-size:12px;letter-spacing:.03em;display:none;border-radius:var(--radius);}
+.auth-error.show{display:block;}
+
+.auth-hint{margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:12.5px;
+  color:var(--ink-soft);text-align:center;letter-spacing:.03em;}
+.auth-hint b{color:var(--ink);}
+
+.footer-text{position:absolute;bottom:20px;font-family:'JetBrains Mono',monospace;font-size:10.5px;
+  color:var(--muted);z-index:2;}

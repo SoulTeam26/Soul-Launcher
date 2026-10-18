@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soul Launcher - Home</title>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&family=JetBrains+Mono:wght@500;700;800&family=Press+Start+2P&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../error-handling/Notification.css">
+    <link rel="stylesheet" href="home.css">
+</head>
+<body class="theme-blue">
+    <!-- TITLEBAR -->
+    <div id="titlebar">
+        <div class="tb-left">
+            <img src="../../assets/icons/icon.png" class="tb-icon" alt="Soul">
+            <span class="tb-title">Soul Dashboard</span>
+        </div>
+        <div class="tb-controls">
+            <button class="tb-btn" id="btn-min"><i class="fa-solid fa-square-minus"></i></button>
+            <button class="tb-btn" id="btn-max"><i class="fa-solid fa-window-maximize"></i></button>
+            <button class="tb-btn tb-cls" id="btn-close"><i class="fa-solid fa-circle-xmark"></i></button>
+        </div>
+    </div>
+
+    <div id="app">
+        <div class="ghost-layer"></div>
+        <!-- ── TOP NAV ──────────────────────── -->
+        <nav class="top-nav">
+            <div class="nav-account" id="user-trigger">
+                <img src="https://minotar.net/helm/Steve/64.png" id="cur-user-img">
+                <div class="user-info">
+                    <span class="user-name" id="cur-user-name">Guest</span>
+                    <span class="user-type" id="cur-user-type">Offline</span>
+                </div>
+            </div>
+            <div class="nav-items">
+                <div class="nav-item active" data-view="home" title="Dashboard">
+                    <i class="fa-solid fa-house"></i> <span>Dashboard</span>
+                </div>
+                <div class="nav-item" data-view="versions" title="Versions">
+                    <i class="fa-solid fa-list"></i> <span>Versions</span>
+                </div>
+                <div class="nav-item" data-view="instances" title="Instances">
+                    <i class="fa-solid fa-cube"></i> <span>Instances</span>
+                </div>
+                <div class="nav-item" data-view="files" title="Files">
+                    <i class="fa-solid fa-folder-tree"></i> <span>Files</span>
+                </div>
+                <div class="nav-item" data-view="skins" title="Skins">
+                    <i class="fa-solid fa-user-ninja"></i> <span>Skins</span>
+                </div>
+                <div class="nav-item" data-view="addons" title="Addons">
+                    <i class="fa-solid fa-puzzle-piece"></i> <span>Addons</span>
+                </div>
+                <div class="nav-item" data-view="settings" title="Settings">
+                    <i class="fa-solid fa-cog"></i> <span>Settings</span>
+                </div>
+                <div class="nav-item" data-view="console" title="Console">
+                    <i class="fa-solid fa-terminal"></i> <span>Console</span>
+                </div>
+                <div class="nav-item" data-view="posts" title="Posts">
+                    <i class="fa-solid fa-newspaper"></i> <span>Posts</span>
+                    <span class="new-post-badge" id="new-post-badge"></span>
+                </div>
+            </div>
+            <div class="nav-store" id="nav-store" title="Open Soul Store (website)">
+                <i class="fa-solid fa-store"></i> <span>Store</span>
+                <i class="fa-solid fa-arrow-up-right-from-square nav-ext"></i>
+            </div>
+        </nav>
+
+        <!-- ── MAIN CONTENT ──────────────────── -->
+        <main class="panel-right">
+            <div id="bg-layer"></div>
+            <div class="right-overlay"></div>
+
+            <!-- DOWNLOAD PROGRESS BAR -->
+            <div id="dl-progress-wrap" class="hidden">
+                <div id="dl-progress-fill"></div>
+                <span id="dl-progress-pct"></span>
+            </div>
+
+            <!-- DASHBOARD / HERO -->
+            <div class="hero-content" id="hero-main">
+                <div class="hero-info-centered">
+                    <!-- Minecraft Background Card -->
+                    <div class="hero-mc-bg" id="hero-mc-bg">
+                        <div class="hero-mc-overlay"></div>
+                        <div class="hero-mc-inner">
+                            <!-- Kept for JS compatibility -->
+                            <div class="hero-inst-icon-wrap hidden" id="hero-inst-icon-wrap">
+                                <img id="hero-inst-icon" src="../../assets/icons/icon.png" alt="">
+                                <span class="hero-inst-loader-badge" id="hero-inst-loader-badge">
+                                    <img src="https://img.icons8.com/color/48/minecraft-grass-cube.png" alt="">
+                                </span>
+                            </div>
+                            <div class="hero-mod-count hidden" id="hero-mod-count"><i class="fa-solid fa-puzzle-piece"></i> 0 Mods</div>
+                            <div class="hero-java-row hidden" id="hero-java-row">
+                                <span id="hero-java-label" style="font-size:11px; opacity:0.7; font-weight:800; text-transform:uppercase; letter-spacing:0.08em;">Java:</span>
+                                <button class="launch-btn btn-java" id="btn-java-select" style="padding:10px 14px; font-size:13px; border-radius:14px; box-shadow: 0 10px 22px rgba(0,0,0,0.25);">
+                                    <i class="fa-solid fa-mug-hot"></i> <span id="btn-java-select-text">Auto</span>
+                                </button>
+                            </div>
+
+                            <!-- 2D hero character (Minotar full-body API) -->
+                            <div class="hero-char" id="hero-char">
+                                <div class="hero-char-namerow">
+                                    <span class="hero-char-rank hidden" id="hero-char-rank"></span>
+                                    <div class="hero-char-name" id="hero-char-name">Steve</div>
+                                </div>
+                                <img class="hero-char-img" id="hero-char-img" src="https://skinrender.dev/render/steve/body?pose=wave&size=256" alt="Player character" draggable="false">
+                            </div>
+
+                            <div class="hero-mc-title" id="hero-name">Minecraft Profile</div>
+                            <div class="hero-actions-centered">
+                                <button class="launch-btn btn-hero-big" id="btn-play">
+                                    <i class="fa-solid fa-play"></i> <span>Launch Now</span>
+                                </button>
+                                <button class="launch-btn stop hidden" id="btn-stop" style="background: #ef4444; box-shadow: 0 12px 30px rgba(239, 68, 68, 0.3);">
+                                    <i class="fa-solid fa-stop"></i> <span>Stop</span>
+                                </button>
+                            </div>
+                            <button class="hero-switch-btn" id="btn-switch-vi">
+                                <i class="fa-solid fa-arrow-right-arrow-left"></i> <span>Change Instance</span>
+                            </button>
+                            <div id="launch-status">Ready to Play</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hero-bottom-box" id="hero-bottom-box">
+                    <div class="hero-bottom-inner hero-bottom-two">
+                        <div class="hbb-col">
+                            <div class="hbb-col-title"><i class="fa-solid fa-server"></i> Partnered Servers <span id="ps-total-online" style="font-weight:400;font-size:10px;opacity:0.7;margin-left:6px;"></span></div>
+                            <div class="hbb-col-content" id="partnered-servers-list">No partnered servers available</div>
+                        </div>
+                        <div class="hbb-col">
+                            <div class="hbb-col-title"><i class="fa-solid fa-cube"></i> Select Instance</div>
+                            <div class="hbb-col-content hbb-inst-list" id="bottom-instance-list">No instances yet</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW OVERLAYS -->
+            <div class="views-container">
+
+                <!-- VERSIONS VIEW -->
+                <section class="view" id="view-versions">
+                    <div class="view-header">
+                        <div class="view-title">Minecraft Versions</div>
+                    </div>
+                    <div class="version-controls" style="display: flex; gap: 15px; margin-bottom: 12px;">
+                        <input type="text" id="version-search" placeholder="Search versions..." style="flex: 1;">
+                    </div>
+                    <div class="v-type-pills" style="display: flex; gap: 8px; margin-bottom: 8px; border:2px solid var(--line-dim);border-radius:12px;padding:8px;justify-content:center;" id="sc-loader-pills-launcher">
+                        <button class="v-type-pill active" data-loader="vanilla"><img src="../../assets/icons/icon.png" style="width:16px;height:16px;object-fit:contain;margin-right:4px;"> Vanilla</button>
+                        <button class="v-type-pill" data-loader="fabric"><img src="https://raw.githubusercontent.com/fabricmc/fabricmc.net/master/assets/logo.png" style="width:16px;height:16px;object-fit:contain;margin-right:4px;"> Fabric</button>
+                        <button class="v-type-pill" data-loader="forge"><i class="fa-solid fa-hammer" style="margin-right:4px;"></i> Forge</button>
+                        <button class="v-type-pill" data-loader="soulclient"><i class="fa-solid fa-crown" style="margin-right:4px;"></i> Soul Client</button>
+                        <button class="v-type-pill" data-loader="kruthclient"><img src="https://kruthclient.github.io/resources/logo.png" style="width:16px;height:16px;object-fit:contain;margin-right:4px;"> Kruth Client</button>
+                    </div>
+                    <div class="v-type-pills" id="v-type-pills" style="display: flex; gap: 8px; margin-bottom: 18px;">
+                        <button class="v-type-pill active" data-vtype="release"><i class="fa-solid fa-cube"></i> Release</button>
+                        <button class="v-type-pill" data-vtype="snapshot"><i class="fa-solid fa-flask"></i> Snapshot</button>
+                        <button class="v-type-pill" data-vtype="beta"><i class="fa-solid fa-b"></i> Old Beta</button>
+                        <button class="v-type-pill" data-vtype="alpha"><i class="fa-solid fa-a"></i> Old Alpha</button>
+                    </div>
+                    <div class="version-list-container" style="overflow-y: auto; flex: 1;">
+                        <div class="version-grid" id="version-grid"></div>
+                    </div>
+                </section>
+
+                <!-- INSTANCES VIEW -->
+                <section class="view" id="view-instances">
+                    <div class="view-header">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <div class="view-title">Instances</div>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="instance-search" placeholder="Search instances..." style="padding: 10px 15px; width: 200px;">
+                                <select id="instance-group-filter" title="Filter by group" style="padding: 10px 12px; max-width: 160px;">
+                                    <option value="">All groups</option>
+                                </select>
+                                <button class="new-instance-btn" id="btn-import-pack" title="Import .mrpack / CurseForge zip / backup">
+                                    <span class="new-instance-btn__icon"><i class="fa-solid fa-file-import"></i></span>
+                                    <span class="new-instance-btn__copy">
+                                        <strong>Import</strong>
+                                        <small>Pack / Backup</small>
+                                    </span>
+                                </button>
+                                <button class="new-instance-btn" id="btn-backups" title="Instance backups">
+                                    <span class="new-instance-btn__icon"><i class="fa-solid fa-box-archive"></i></span>
+                                    <span class="new-instance-btn__copy">
+                                        <strong>Backups</strong>
+                                        <small>Restore</small>
+                                    </span>
+                                </button>
+                                <button class="new-instance-btn" id="btn-new-inst">
+                                    <span class="new-instance-btn__icon">
+                                        <img src="../../assets/icons/icon.png" alt="">
+                                    </span>
+                                    <span class="new-instance-btn__copy">
+                                        <strong>New Instance</strong>
+                                        <small>Vanilla, Fabric, or Forge</small>
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="instance-grid-v2" id="instance-list"></div>
+                </section>
+
+                <!-- INSTANCE FILE MANAGER VIEW (Modrinth-style) -->
+                <section class="view" id="view-files">
+                    <div class="view-header">
+                        <div style="display:flex; justify-content:space-between; align-items:center; width:100%; gap:14px; flex-wrap:wrap;">
+                            <div class="view-title">Instance Files</div>
+                            <div style="display:flex; gap:10px; align-items:center;">
+                                <select id="files-instance-select" class="fm-instance-select"></select>
+                                <input type="text" id="files-search" placeholder="Search files..." class="fm-search">
+                                <button class="fm-btn" id="fm-refresh" title="Refresh"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
+                                <div class="fm-add-wrap">
+                                    <button class="fm-btn fm-btn-primary" id="fm-add"><i class="fa-solid fa-plus"></i> <i class="fa-solid fa-chevron-down" style="font-size:10px; margin-left:4px;"></i></button>
+                                    <div class="fm-add-menu hidden" id="fm-add-menu">
+                                        <div class="fm-add-item" data-act="folder"><i class="fa-solid fa-folder-plus"></i> New folder</div>
+                                        <div class="fm-add-item" data-act="file"><i class="fa-solid fa-file-circle-plus"></i> New file</div>
+                                        <div class="fm-add-item" data-act="import"><i class="fa-solid fa-file-import"></i> Import files...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="fm-toolbar">
+                        <button class="fm-iconbtn" id="fm-home" title="Instance root"><i class="fa-solid fa-house"></i></button>
+                        <button class="fm-iconbtn" id="fm-up" title="Up one level"><i class="fa-solid fa-arrow-up"></i></button>
+                        <div class="fm-breadcrumb" id="fm-breadcrumb"></div>
+                        <button class="fm-iconbtn" id="fm-open-os" title="Open in system file manager"><i class="fa-solid fa-up-right-from-square"></i></button>
+                    </div>
+
+                    <div class="fm-table-wrap">
+                        <table class="fm-table">
+                            <thead>
+                                <tr>
+                                    <th class="fm-col-name" data-sort="name">Name <i class="fa-solid fa-chevron-up"></i></th>
+                                    <th class="fm-col-size" data-sort="size">Size</th>
+                                    <th class="fm-col-date" data-sort="created">Created</th>
+                                    <th class="fm-col-date" data-sort="modified">Modified</th>
+                                    <th class="fm-col-actions">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fm-tbody"></tbody>
+                        </table>
+                        <div id="fm-empty" class="fm-empty hidden">
+                            <i class="fa-solid fa-folder-open"></i>
+                            <div>This folder is empty.</div>
+                        </div>
+                    </div>
+                </section>
+
+
+                <!-- ADDONS VIEW (Merged Mods & Packs) -->
+                <section class="view" id="view-addons">
+                    <div class="view-header">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <div class="view-title">Addon Manager</div>
+                            <div class="addon-toggle-pills">
+                                <button class="addon-pill active" data-type="mods">Mods</button>
+                                <button class="addon-pill" data-type="packs">Resource Packs</button>
+                                <button class="addon-pill" data-type="shaders">Shaders</button>
+                                <button class="addon-pill" data-type="worlds">Worlds</button>
+                                <button class="addon-pill" data-type="modpacks">Modpacks</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="file-toolbar">
+                        <label>Instance</label>
+                        <select id="addon-instance-select"></select>
+                        <button class="launch-btn addon-safety-btn" id="btn-check-mod-updates" title="Find compatible updates for all enabled Modrinth mods">
+                            <i class="fa-solid fa-arrows-rotate"></i> Check Updates
+                        </button>
+                        <button class="launch-btn addon-safety-btn" id="btn-save-mod-profile" title="Save the enabled-mod selection as a profile">
+                            <i class="fa-solid fa-bookmark"></i> Save Profile
+                        </button>
+                        <select id="mod-profile-select" class="hidden" title="Apply a saved mod profile"></select>
+                        <button class="launch-btn" id="btn-add-addon-local" style="font-size: 14px; padding: 10px 20px;">
+                            <i class="fa-solid fa-plus"></i> Add Local
+                        </button>
+                        <button class="launch-btn" id="btn-browse-modrinth" style="font-size: 14px; padding: 10px 20px;">
+                            <i class="fa-solid fa-magnifying-glass"></i> Browse Modrinth
+                        </button>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+                        <input type="text" id="addon-search" placeholder="Search addons..." style="margin-bottom: 12px;">
+                        <div class="mods-table" id="addon-list"></div>
+                    </div>
+                </section>
+
+                <section class="view" id="view-skins">
+                    <div class="view-header">
+                        <div class="view-title">Skin Customization</div>
+                        <div class="view-subtitle" style="margin-top: 5px; opacity: 0.8; font-size: 14px;">Personalize your character with 3D previews, custom capes, and one-click application.</div>
+                    </div>
+
+                    <div class="skins-layout">
+                        <div class="skin-left">
+                            <div id="skin-viewer-container">
+                                <!-- Zoom Controls -->
+                                <div class="skin-zoom-controls">
+                                    <button class="zoom-btn" id="skin-zoom-in" title="Zoom In"><i class="fa-solid fa-plus"></i></button>
+                                    <button class="zoom-btn" id="skin-zoom-out" title="Zoom Out"><i class="fa-solid fa-minus"></i></button>
+                                    <button class="zoom-btn" id="skin-zoom-reset" title="Reset Camera"><i class="fa-solid fa-arrows-to-dot"></i></button>
+                                    <button class="zoom-btn" id="skin-screenshot" title="Download transparent PNG of skin + cape"><i class="fa-solid fa-camera"></i></button>
+                                </div>
+                            </div>
+                            <div class="skin-preview-controls">
+                                <div class="skin-preview-actions">
+                                    <button class="launch-btn" id="btn-upload-skin" title="Upload new skin PNG"><i class="fa-solid fa-upload"></i> Upload Skin</button>
+                                    <button class="launch-btn btn-secondary" id="btn-upload-cape" title="Upload new cape PNG"><i class="fa-solid fa-file-arrow-up"></i> Upload Cape</button>
+                                    <button class="launch-btn btn-secondary" id="btn-skin-screenshot" title="Download transparent PNG of skin + cape in current pose"><i class="fa-solid fa-camera"></i> Screenshot</button>
+                                </div>
+                                <div class="skin-model-toggle">
+                                    <button class="launch-btn" id="btn-model-classic" title="Use classic 4px arm model">Classic</button>
+                                    <button class="launch-btn btn-secondary" id="btn-model-slim" title="Use slim 3px arm model">Slim</button>
+                                </div>
+                                <div class="skin-model-note">Choose the skin model for CustomSkinLoader previews and application.</div>
+                            </div>
+                            <div class="mc-bg-preview">
+                                <div class="mc-sky"></div>
+                                <div class="mc-grass"></div>
+                                <div class="mc-dirt"></div>
+                                <div class="mc-stone"></div>
+                            </div>
+                        </div>
+
+                        <div class="skin-right">
+                            <div class="skin-section">
+                                <div class="skin-section-title cape-section-head">
+                                    <div class="cape-head-left">
+                                        <span>My Skins</span>
+                                        <span class="cape-count" id="skin-count">0</span>
+                                    </div>
+                                    <div class="cape-head-actions">
+                                        <label class="cape-search-wrap" title="Filter skins">
+                                            <i class="fa-solid fa-magnifying-glass"></i>
+                                            <input id="skin-filter" type="text" placeholder="Filter skins..." autocomplete="off" spellcheck="false">
+                                        </label>
+                                        <button class="zoom-btn" id="btn-clear-skin-history" title="Clear All Skins" style="width: 24px; height: 24px; font-size: 10px; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2);"><i class="fa-solid fa-trash-can"></i></button>
+                                    </div>
+                                </div>
+                                <div class="skin-search-bar">
+                                    <input type="text" id="skin-search-input" placeholder="Player name — download their skin...">
+                                    <button class="launch-btn" id="btn-skin-search"><i class="fa-solid fa-download"></i> Get Skin</button>
+                                </div>
+                                <div class="skin-history-grid" id="skin-history-grid"></div>
+                            </div>
+                            <div class="skin-section cape-section" id="cape-section">
+                                <div class="skin-section-title cape-section-head">
+                                    <div class="cape-head-left">
+                                        <span>Capes</span>
+                                        <span class="cape-count" id="cape-count">0</span>
+                                        <span class="cape-active-badge hidden" id="cape-active-badge"><i class="fa-solid fa-check"></i> Active</span>
+                                    </div>
+                                    <div class="cape-head-actions">
+                                        <label class="cape-search-wrap" title="Filter capes">
+                                            <i class="fa-solid fa-magnifying-glass"></i>
+                                            <input id="cape-search" type="text" placeholder="Search capes..." autocomplete="off" spellcheck="false">
+                                        </label>
+                                        <button class="zoom-btn" id="btn-clear-cape-history" title="Clear All Capes" style="width: 24px; height: 24px; font-size: 10px; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2);"><i class="fa-solid fa-trash-can"></i></button>
+                                    </div>
+                                </div>
+                                <div class="cape-grid" id="cape-history-grid"></div>
+                                <div class="cape-empty hidden" id="cape-empty">
+                                    <div class="cape-empty-icon"><i class="fa-solid fa-flag"></i></div>
+                                    <div class="cape-empty-title">No capes yet</div>
+                                    <div class="cape-empty-sub">Upload a PNG or GIF cape — drag &amp; drop anywhere in this section. Preview live on the 3D viewer.</div>
+                                    <button class="launch-btn btn-secondary" id="btn-cape-empty-upload"><i class="fa-solid fa-upload"></i> Upload Cape</button>
+                                </div>
+                                <div class="cape-drop-hint" id="cape-drop-hint"><i class="fa-solid fa-file-arrow-up"></i> Drop cape PNG/GIF to upload</div>
+                             </div>
+
+                             <div class="skin-apply-card">
+                                <div style="font-size: 13px; opacity: 0.7; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa-solid fa-info-circle" style="color: var(--accent);"></i> 
+                                    <span>Requires Fabric/Forge Instance & CustomSkinLoader.</span>
+                                </div>
+                                <div style="display: flex; gap: 12px;">
+                                    <div style="flex: 1; display: flex; gap: 5px;">
+                                        <select id="skin-target-instance" style="flex: 1;"></select>
+                                        <button class="zoom-btn" id="btn-refresh-skin-instances" title="Refresh Instances" style="width: 42px; height: 42px; background: rgba(255,255,255,0.05);"><i class="fa-solid fa-arrows-rotate"></i></button>
+                                    </div>
+                                    <button class="launch-btn btn-large btn-accent" id="btn-apply-skin-all" style="flex: 1;">APPLY TO GAME</button>
+                                </div>
+                                <div style="display: flex; gap: 12px; margin-top: 10px;">
+                                    <button class="launch-btn btn-secondary" id="btn-upload-mojang" title="Upload the selected skin to your official Mojang profile (Microsoft accounts)" style="flex: 1; font-size: 13px;"><i class="fa-solid fa-cloud-arrow-up"></i> Upload to Mojang</button>
+                                </div>
+                                <div class="apply-status" id="skin-apply-status">
+                                    <i class="fa-solid fa-circle-notch fa-spin"></i>
+                                    <span id="skin-apply-status-text">Ready to apply...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- MODRINTH VIEW -->
+                <section class="view" id="view-modrinth">
+                    <div class="view-header">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <button class="tb-btn" id="btn-back-modrinth" title="Back to Addons">
+                                <i class="fa-solid fa-arrow-left"></i>
+                            </button>
+                            <i class="fa-solid fa-earth-americas" style="font-size: 24px; color: var(--accent);"></i>
+                            <h2 class="view-title" id="modrinth-title" style="margin: 0;">Browse Modrinth</h2>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex: 1; min-height: 0; overflow: hidden; border: 2px solid var(--ink); box-shadow: 5px 5px 0 var(--paper-dim);">
+                        <aside class="modrinth-sidebar" id="modrinth-sidebar" style="width: 280px; display: flex; flex-direction: column; padding: 20px; overflow-y: auto;">
+                            <div class="filter-group">
+                                <label class="filter-label">Keyword</label>
+                                <div class="filter-search-wrap">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                    <input type="text" id="modrinth-search" placeholder="Search...">
+                                </div>
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">Game Version</label>
+                                <div class="filter-search-wrap mini">
+                                    <i class="fa-solid fa-search"></i>
+                                    <input type="text" id="filter-version-search" placeholder="Filter versions...">
+                                </div>
+                                <div class="filter-scroll-list" id="filter-version-list"></div>
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">Loader</label>
+                                <div class="filter-pill-grid" id="filter-loader-list">
+                                    <button class="filter-pill" data-val="fabric">Fabric</button>
+                                    <button class="filter-pill" data-val="forge">Forge</button>
+                                </div>
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">Sort By</label>
+                                <div class="filter-pill-grid" id="filter-sort-list">
+                                    <button class="filter-pill active" data-val="downloads">Popular</button>
+                                    <button class="filter-pill" data-val="relevance">Relevance</button>
+                                    <button class="filter-pill" data-val="follows">Followed</button>
+                                    <button class="filter-pill" data-val="updated">Updated</button>
+                                </div>
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">Categories</label>
+                                <div class="filter-scroll-list categories" id="filter-category-list" style="height: 200px;">
+                                    <button class="filter-list-item" data-val="adventure">Adventure</button>
+                                    <button class="filter-list-item" data-val="cursed">Cursed</button>
+                                    <button class="filter-list-item" data-val="decoration">Decoration</button>
+                                    <button class="filter-list-item" data-val="economy">Economy</button>
+                                    <button class="filter-list-item" data-val="equipment">Equipment</button>
+                                    <button class="filter-list-item" data-val="food">Food</button>
+                                    <button class="filter-list-item" data-val="game-mechanics">Game Mechanics</button>
+                                    <button class="filter-list-item" data-val="library">Library</button>
+                                    <button class="filter-list-item" data-val="magic">Magic</button>
+                                    <button class="filter-list-item" data-val="management">Management</button>
+                                    <button class="filter-list-item" data-val="minigame">Minigame</button>
+                                    <button class="filter-list-item" data-val="mobs">Mobs</button>
+                                    <button class="filter-list-item" data-val="optimization">Optimization</button>
+                                    <button class="filter-list-item" data-val="social">Social</button>
+                                    <button class="filter-list-item" data-val="storage">Storage</button>
+                                    <button class="filter-list-item" data-val="technology">Technology</button>
+                                    <button class="filter-list-item" data-val="transportation">Transportation</button>
+                                    <button class="filter-list-item" data-val="utility">Utility</button>
+                                    <button class="filter-list-item" data-val="world-gen">World Gen</button>
+                                </div>
+                            </div>
+                            <button id="btn-clear-filters" class="tb-btn" style="width: 100%; margin-top: auto; padding: 10px; font-size: 12px; font-weight: 800; text-transform: uppercase;">
+                                Clear All Filters
+                            </button>
+                        </aside>
+                        <main id="modrinth-main" style="flex: 1; display: flex; flex-direction: column; min-width: 0;">
+                            <div id="modrinth-results" style="flex: 1; overflow-y: auto; padding: 25px; display: grid; grid-template-columns: 1fr; gap: 12px; align-content: start;"></div>
+                            <div id="modrinth-detail" class="mrd-scroll" style="display: none; flex: 1; overflow-y: auto; padding: 25px; min-width: 0;"></div>
+                        </main>
+                    </div>
+                </section>
+
+                <!-- SETTINGS VIEW -->
+                <section class="view" id="view-settings">
+                    <div class="view-header"><div class="view-title">Settings</div></div>
+
+                    <!-- JAVA & MEMORY -->
+                    <div class="settings-group">
+                        <span class="group-label">Java &amp; Memory</span>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label>Java Path</label>
+                                <span>Leave blank to auto-detect the correct version</span>
+                            </div>
+                            <div class="setting-control" style="display: flex; gap: 10px;">
+                                <input type="text" id="java-path" placeholder="Auto-detect" style="flex: 1;">
+                                <button class="tb-btn mini" id="btn-select-java"><i class="fa-solid fa-folder-open"></i></button>
+                                <button class="tb-btn mini" id="btn-remove-java-path" title="Remove custom Java path"><i class="fa-solid fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label>System Memory</label>
+                                <span>System RAM available to Minecraft and the launcher</span>
+                            </div>
+                            <span id="sys-mem-info" style="font-size: 14px; opacity: 0.7;">Loading...</span>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label>Minecraft RAM Limit</label>
+                                <span>How much RAM Minecraft can use</span>
+                            </div>
+                            <div class="setting-control" style="display: flex; flex-direction: column; gap: 6px;">
+                                <div style="display: flex; align-items: center; gap: 15px;">
+                                    <input type="range" id="mem-slider" min="1" max="32" step="0.5" style="flex: 1;">
+                                    <span id="mem-val" style="min-width:32px; text-align:right;">4G</span>
+                                </div>
+                                <span id="mem-note" class="mem-note">This is the Minecraft JVM cap. Launcher process memory is shown above.</span>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label>JVM Arguments</label>
+                                <span>Extra flags passed to Java (advanced)</span>
+                            </div>
+                            <input type="text" id="jvm-args" placeholder="-XX:+UseG1GC -XX:MaxGCPauseMillis=50" class="setting-control">
+                        </div>
+                    </div>
+
+                    <!-- JAVA DOWNLOADER -->
+                    <div class="settings-group">
+                        <span class="group-label">Java Installations</span>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label>Managed Java Versions</label>
+                                <span>Java runtimes stored in the Soul folder — used automatically when launching</span>
+                            </div>
+                            <button class="tb-btn mini" id="btn-refresh-java-status">
+                                <i class="fa-solid fa-rotate-right"></i> Refresh
+                            </button>
+                        </div>
+                        <!-- Java status cards -->
+                        <div id="java-status-cards" style="display:flex; gap:10px; flex-wrap:wrap; padding: 4px 0 8px 0;">
+                            <div style="opacity:0.4; font-size:13px;">Loading...</div>
+                        </div>
+                        <!-- Download All row -->
+                        <div class="setting-row" style="align-items: flex-start; flex-direction: column; gap: 10px;">
+                            <div style="display:flex; align-items:center; gap:12px; width:100%;">
+                                <div class="setting-info" style="flex:1;">
+                                    <label>Download All Java</label>
+                                    <span>Pre-download Java 8, 17, 21, and 25 into the Soul folder so every version launches without waiting</span>
+                                </div>
+                                <button class="tb-btn mini" id="btn-download-all-java" style="white-space:nowrap;">
+                                    <i class="fa-solid fa-download"></i> Download All
+                                </button>
+                            </div>
+                            <!-- Progress area (hidden until download starts) -->
+                            <div id="java-dl-progress-wrap" style="display:none; width:100%;">
+                                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                                    <span id="java-dl-msg" style="font-size:12px; opacity:0.7;"></span>
+                                    <span id="java-dl-pct" style="font-size:12px; opacity:0.7;"></span>
+                                </div>
+                                <div style="background:var(--black2,#111); border-radius:6px; height:6px; overflow:hidden;">
+                                    <div id="java-dl-bar" style="height:100%; width:0%; background:var(--accent,#6c63ff); transition:width 0.3s ease; border-radius:6px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GAME WINDOW -->
+                    <div class="settings-group">
+                        <span class="group-label">Game Window</span>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label>Resolution</label>
+                                <span>Starting window size when Minecraft launches</span>
+                            </div>
+                            <div class="setting-control" style="display: flex; align-items: center; gap: 10px;">
+                                <input type="number" id="res-w" placeholder="1280" min="640" max="7680" style="flex: 1;">
+                                <span style="opacity:0.5;">×</span>
+                                <input type="number" id="res-h" placeholder="720" min="360" max="4320" style="flex: 1;">
+                                <span style="opacity:0.5; font-size:12px;">px</span>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label>Fullscreen on Launch</label>
+                                <span>Start Minecraft in fullscreen mode</span>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="toggle-fullscreen">
+                                <span class="toggle-track"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- LAUNCHER BEHAVIOUR -->
+                    <div class="settings-group">
+                        <span class="group-label">Launcher Behaviour</span>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label>Close Launcher on Launch</label>
+                                <span>Hide the launcher window when the game starts</span>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="toggle-close-on-launch">
+                                <span class="toggle-track"></span>
+                            </label>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label>Reopen on Game Close</label>
+                                <span>Bring the launcher back when Minecraft exits</span>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="toggle-reopen-on-close">
+                                <span class="toggle-track"></span>
+                            </label>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label>Keep Launcher in Console</label>
+                                <span>Auto-switch to the console tab when launching</span>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="toggle-show-console">
+                                <span class="toggle-track"></span>
+                            </label>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label>Snow Particles</label>
+                                <span>Animated snow effect on the loading screen</span>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="toggle-snow-particles">
+                                <span class="toggle-track"></span>
+                            </label>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label>Launcher Animations</label>
+                                <span>Animated effects and ghosts across the launcher</span>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="toggle-animations">
+                                <span class="toggle-track"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- GAME FILES -->
+                    <div class="settings-group">
+                        <span class="group-label">Game Files</span>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label>Game Data Folder</label>
+                                <span>Where instances, assets and libraries are stored</span>
+                            </div>
+                            <button class="tb-btn mini" id="btn-open-data-folder">
+                                <i class="fa-solid fa-folder-open"></i> Open Folder
+                            </button>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label>Concurrent Downloads</label>
+                                <span>Files downloaded in parallel (higher = faster but more CPU)</span>
+                            </div>
+                            <select id="concurrent-downloads" class="setting-control">
+                                <option value="1">1 – Low</option>
+                                <option value="2">2 – Normal</option>
+                                <option value="4" selected>4 – Fast (default)</option>
+                                <option value="8">8 – Very Fast</option>
+                                <option value="16">16 – Maximum</option>
+                            </select>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label>Clear Asset Cache</label>
+                                <span>Remove downloaded asset cache — files re-download on next launch</span>
+                            </div>
+                            <button class="tb-btn mini" id="btn-clear-cache" style="color: #fbbf24; border-color: rgba(251,191,36,0.3);">
+                                <i class="fa-solid fa-broom"></i> Clear Cache
+                            </button>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label>Clear All Data</label>
+                                <span>⚠️ Permanently delete all instances and launcher data</span>
+                            </div>
+                            <button class="tb-btn mini" id="btn-clear-data" style="color: #ef4444; border-color: rgba(239,68,68,0.3);">
+                                <i class="fa-solid fa-trash-can"></i> Clear Data
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <span class="group-label">Next Update</span>
+                        <div class="update-countdown-panel">
+                            <div class="update-countdown-copy">
+                                <div class="update-countdown-kicker">Scheduled Release</div>
+                                <h3>Next update coming in</h3>
+                                <p id="settings-next-update-text">Waiting for an admin to schedule the next launcher update.</p>
+                            </div>
+                            <div class="update-countdown-grid" id="settings-update-countdown">
+                                <div class="update-countdown-empty">No update scheduled yet.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- THEME & APPEARANCE -->
+                    <div class="settings-group">
+                        <span class="group-label">Theme &amp; Appearance</span>
+
+                        <div class="setting-row">
+                            <label style="font-size: 14px; opacity: 0.8; margin-bottom: 10px; display: block;">UI Accent Theme</label>
+                            <div class="theme-grid accent-theme-grid">
+                                <div class="theme-card theme-red-card active" data-theme="red">
+                                    <span class="theme-swatch" style="background: #FF3B30;"></span>
+                                    <span>Red</span>
+                                </div>
+                                <div class="theme-card" data-theme="blue">
+                                    <span class="theme-swatch" style="background: #3B9CFF;"></span>
+                                    <span>Blue</span>
+                                </div>
+                                <div class="theme-card" data-theme="purple">
+                                    <span class="theme-swatch" style="background: #A855F7;"></span>
+                                    <span>Purple</span>
+                                </div>
+                                <div class="theme-card" data-theme="grey">
+                                    <span class="theme-swatch" style="background: #9BA4AD;"></span>
+                                    <span>Grey</span>
+                                </div>
+                                <div class="theme-card" data-theme="pink">
+                                    <span class="theme-swatch" style="background: #FF6FA5;"></span>
+                                    <span>Pink</span>
+                                </div>
+                                <div class="theme-card" data-theme="green">
+                                    <span class="theme-swatch" style="background: #2FBF71;"></span>
+                                    <span>Green</span>
+                                </div>
+                                <div class="theme-card" data-theme="cyan">
+                                    <span class="theme-swatch" style="background: #22D3EE;"></span>
+                                    <span>Cyan</span>
+                                </div>
+                                <div class="theme-card" data-theme="orange">
+                                    <span class="theme-swatch" style="background: #FF9F0A;"></span>
+                                    <span>Orange</span>
+                                </div>
+                                <div class="theme-card" data-theme="yellow">
+                                    <span class="theme-swatch" style="background: #FFD60A;"></span>
+                                    <span>Yellow</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="setting-row" style="margin-top: 20px;">
+                            <label style="font-size: 14px; opacity: 0.8; margin-bottom: 10px; display: block;">Home Background</label>
+                            <div class="theme-grid bg-selector-grid" id="bg-selector-grid">
+                                <div class="theme-card bg-card active" data-bg="snow-scene.png" style="padding: 0; overflow: hidden;">
+                                    <img src="../../assets/backgrounds/snow-scene.png" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.6;">
+                                    <span style="position: absolute; bottom: 8px; font-size: 11px; font-weight: 800;">Snow Scene</span>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 10px; margin-top: 12px;">
+                                <button class="tb-btn mini" id="btn-upload-bg" style="flex: 1; justify-content: center;">
+                                    <i class="fa-solid fa-upload"></i> Custom Home Background
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <span class="group-label">Developer</span>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label>Launcher Version</label>
+                                <span>Soul Launcher</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span id="launcher-version-label" style="font-size:13px; opacity:0.6;">v1.0.7</span>
+                                <button class="tb-btn mini" id="btn-check-updates" style="padding: 4px 10px; font-size: 11px;">
+                                    <i class="fa-solid fa-arrows-rotate"></i> Check for Updates
+                                </button>
+                                <button class="tb-btn mini" id="btn-test-changelog" style="padding: 4px 10px; font-size: 11px; background: rgba(59,130,246,0.15);">
+                                    <i class="fa-solid fa-flask"></i> Check Notes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+
+                <!-- CONSOLE VIEW -->
+                <section class="view" id="view-console">
+                    <div class="view-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div class="view-title">Output Console</div>
+                        <div style="display:flex;gap:8px;">
+                            <button class="console-action-btn" id="btn-crash-doctor"><i class="fa-solid fa-user-doctor"></i> Crash Doctor</button>
+                            <button class="console-action-btn btn-err" id="btn-copy-errors"><i class="fa-solid fa-triangle-exclamation"></i> Errors</button>
+                            <button class="console-action-btn btn-wrn" id="btn-copy-warnings"><i class="fa-solid fa-circle-exclamation"></i> Warnings</button>
+                            <button class="console-action-btn" id="btn-copy-logs"><i class="fa-solid fa-copy"></i> All Logs</button>
+                        </div>
+                    </div>
+                    <section class="diagnosis-panel hidden" id="crash-doctor-panel" aria-live="polite">
+                        <div class="diagnosis-icon"><i class="fa-solid fa-user-doctor"></i></div>
+                        <div class="diagnosis-copy">
+                            <strong id="cd-title">Crash Doctor</strong>
+                            <p id="cd-summary"></p>
+                            <ul id="cd-steps"></ul>
+                            <div id="cd-meta"></div>
+                            <div id="cd-suspects" class="hidden"></div>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:8px;">
+                            <button class="console-action-btn" id="btn-cd-copy"><i class="fa-solid fa-clipboard"></i> Copy Report</button>
+                            <button class="console-action-btn" id="btn-cd-close"><i class="fa-solid fa-xmark"></i> Close</button>
+                        </div>
+                    </section>
+                    <section class="diagnosis-panel hidden" id="launch-diagnosis" aria-live="polite">
+                        <div class="diagnosis-icon"><i class="fa-solid fa-stethoscope"></i></div>
+                        <div class="diagnosis-copy">
+                            <strong id="diagnosis-title">Launch help</strong>
+                            <p id="diagnosis-summary"></p>
+                            <ul id="diagnosis-steps"></ul>
+                            <div id="diagnosis-suspects" class="hidden"></div>
+                        </div>
+                        <button class="console-action-btn" id="btn-copy-diagnostic"><i class="fa-solid fa-clipboard"></i> Copy Diagnostic Report</button>
+                    </section>
+                    <div class="console-container">
+                        <div class="console-box" id="console-output">Ready...</div>
+                    </div>
+                </section>
+
+                <!-- POSTS VIEW -->
+                <section class="view" id="view-posts">
+                   <div class="view-header">
+                       <div class="view-title">News &amp; Updates</div>
+                   </div>
+                   <div class="update-countdown-banner">
+                       <div class="update-countdown-copy">
+                           <div class="update-countdown-kicker">Scheduled Release</div>
+                           <h3>Next update coming in</h3>
+                           <p id="posts-next-update-text">Waiting for an admin to schedule the next launcher update.</p>
+                       </div>
+                       <div class="update-countdown-grid" id="posts-update-countdown">
+                           <div class="update-countdown-empty">No update scheduled yet.</div>
+                       </div>
+                   </div>
+                   <div id="posts-container" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;">
+                         <div style="grid-column:1/-1;text-align:center;padding:100px;opacity:0.5;">
+                            <i class="fa-solid fa-spinner fa-spin" style="font-size:32px;margin-bottom:20px;display:block;"></i>
+                            <p>Connecting to Soul Servers...</p>
+                         </div>
+                      </div>
+                 </section>
+
+            </div>
+
+        </main>
+        <aside class="panel-right-sidebar">
+            <div class="sidebar-ads" id="sidebar-ads-container">
+                <div class="ad-reserved">Ad Slot</div>
+                <!-- Future Google Ads slot: keep hidden until an ad provider fills it. -->
+                <div class="ad-slot" id="ad-slot-0" style="display:none;"></div>
+                <div class="ad-slot" id="ad-slot-1" style="display:none;"></div>
+                <div class="ad-slot" id="ad-slot-2" style="display:none;"></div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Firebase SDKs (loaded async — failures are non-fatal) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js"></script>
+
+    <!-- INSTANCE SETTINGS MODAL (per-instance RAM / resolution / JVM / env / hooks / tags) -->
+    <div class="overlay" id="overlay-instance-settings">
+        <div class="overlay-content create-inst-modal" style="max-width: 560px;">
+            <div class="create-inst-header">
+                <div style="flex: 1;">
+                    <div class="create-inst-title">Instance Settings</div>
+                    <div class="create-inst-sub" id="inst-settings-sub">Per-instance overrides — blank means use global Settings.</div>
+                </div>
+                <button class="tb-btn" id="btn-close-inst-settings" style="height: 36px; width: 36px; border-radius: 10px; background: rgba(255,255,255,0.05);">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="create-inst-body">
+                <div class="create-field">
+                    <label class="create-label">RAM (GB) — blank = global</label>
+                    <input type="number" id="is-ram" placeholder="e.g. 4" min="0.5" max="64" step="0.5" style="width: 100%;">
+                </div>
+                <div class="create-field">
+                    <label class="create-label">Resolution — blank = global</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="number" id="is-resw" placeholder="1280" min="640" max="7680" style="flex: 1;">
+                        <span style="opacity:0.5;">×</span>
+                        <input type="number" id="is-resh" placeholder="720" min="360" max="4320" style="flex: 1;">
+                        <select id="is-fullscreen" style="flex: 1;">
+                            <option value="">Global fullscreen</option>
+                            <option value="on">Fullscreen on</option>
+                            <option value="off">Fullscreen off</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="create-field">
+                    <label class="create-label">JVM Preset</label>
+                    <select id="is-jvm-preset" style="width: 100%;"></select>
+                </div>
+                <div class="create-field">
+                    <label class="create-label">Extra JVM Args <span style="opacity: 0.4; font-weight: 400;">(appended after global + preset)</span></label>
+                    <input type="text" id="is-jvm-args" placeholder="-XX:MaxGCPauseMillis=100" style="width: 100%;">
+                </div>
+                <div class="create-field">
+                    <label class="create-label">Environment Variables <span style="opacity: 0.4; font-weight: 400;">(one KEY=VALUE per line)</span></label>
+                    <textarea id="is-env" rows="3" placeholder="MESA_GL_VERSION_OVERRIDE=4.6" style="width: 100%; padding: 12px 16px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 12px; color: white; outline: none; font-family: inherit; resize: vertical;"></textarea>
+                </div>
+                <div class="create-field">
+                    <label class="create-label">Pre-launch Hook <span style="opacity: 0.4; font-weight: 400;">(shell command, runs before game)</span></label>
+                    <input type="text" id="is-prehook" placeholder="" style="width: 100%;">
+                </div>
+                <div class="create-field">
+                    <label class="create-label">Post-game Hook <span style="opacity: 0.4; font-weight: 400;">(runs when game exits)</span></label>
+                    <input type="text" id="is-posthook" placeholder="" style="width: 100%;">
+                </div>
+                <div class="create-field">
+                    <label class="create-label">Tags <span style="opacity: 0.4; font-weight: 400;">(comma separated)</span></label>
+                    <input type="text" id="is-tags" placeholder="pvp, modded" style="width: 100%;">
+                </div>
+                <div class="create-field">
+                    <label class="create-label">Group</label>
+                    <input type="text" id="is-group" placeholder="e.g. Survival" style="width: 100%;">
+                </div>
+                <div class="create-field">
+                    <label class="create-label">Launch Command Preview</label>
+                    <button class="launch-btn" id="btn-preview-cmd" style="font-size: 13px; padding: 10px 18px; width: 100%; justify-content: center;">
+                        <i class="fa-solid fa-terminal"></i> Preview Command
+                    </button>
+                    <pre id="inst-cmd-preview" style="display:none; white-space: pre-wrap; word-break: break-all; font-size: 11px; opacity: 0.8; background: rgba(0,0,0,0.35); padding: 12px; border-radius: 10px; margin-top: 8px; max-height: 140px; overflow-y: auto;"></pre>
+                </div>
+            </div>
+            <div class="create-inst-footer" style="display: flex; gap: 10px;">
+                <button class="launch-btn" id="btn-export-mrpack" style="font-size: 13px; padding: 12px 18px;">
+                    <i class="fa-solid fa-share-from-square"></i> Export .mrpack
+                </button>
+                <button class="launch-btn" id="btn-save-inst-settings" style="flex: 1; font-size: 16px; padding: 14px 30px; justify-content: center;">
+                    <i class="fa-solid fa-check"></i> Save Settings
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BACKUPS MODAL -->
+    <div class="overlay" id="overlay-backups">
+        <div class="overlay-content create-inst-modal" style="max-width: 560px;">
+            <div class="create-inst-header">
+                <div style="flex: 1;">
+                    <div class="create-inst-title">Instance Backups</div>
+                    <div class="create-inst-sub">Runtime folders (versions/libraries/natives) are excluded and re-download on launch.</div>
+                </div>
+                <button class="tb-btn" id="btn-close-backups" style="height: 36px; width: 36px; border-radius: 10px; background: rgba(255,255,255,0.05);">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="create-inst-body">
+                <div id="backups-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+            </div>
+            <div class="create-inst-footer" style="display: flex; gap: 10px;">
+                <button class="launch-btn" id="btn-restore-backup-file" style="flex: 1; font-size: 14px; padding: 12px 20px; justify-content: center;">
+                    <i class="fa-solid fa-folder-open"></i> Restore From File...
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- IMAGE LIGHTBOX (in-launcher preview) -->
+    <div class="overlay" id="overlay-image-preview" style="overflow: hidden;">
+        <div style="position:relative;max-width:92vw;max-height:90vh;display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <img id="img-preview-el" src="" alt="" style="max-width:92vw;max-height:74vh;object-fit:contain;border:2px solid var(--line-dim);background:#000;box-shadow:8px 8px 0 var(--paper-dim);cursor:grab;touch-action:none;">
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center;">
+                <button class="fm-btn" id="btn-img-prev" title="Previous"><i class="fa-solid fa-chevron-left"></i></button>
+                <span id="img-preview-count" style="font-size:12px;opacity:0.7;min-width:48px;text-align:center;"></span>
+                <button class="fm-btn" id="btn-img-next" title="Next"><i class="fa-solid fa-chevron-right"></i></button>
+                <button class="fm-btn" id="btn-img-zoom-out" title="Zoom out"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+                <span id="img-preview-zoom" style="font-size:12px;opacity:0.7;min-width:48px;text-align:center;">100%</span>
+                <button class="fm-btn" id="btn-img-zoom-in" title="Zoom in"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+                <button class="fm-btn" id="btn-img-zoom-reset" title="Reset zoom"><i class="fa-solid fa-arrows-to-dot"></i></button>
+                <button class="fm-btn" id="btn-img-open" title="Open full size in browser"><i class="fa-solid fa-up-right-from-square"></i></button>
+                <button class="fm-btn" id="btn-img-close"><i class="fa-solid fa-xmark"></i> Close</button>
+            </div>
+            <div id="img-preview-title" style="font-size:12px;opacity:0.7;max-width:92vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+        </div>
+    </div>
+
+    <!-- CREATE INSTANCE MODAL (REDESIGNED) -->
+    <div class="overlay" id="overlay-create">
+        <div class="overlay-content create-inst-modal">
+            <!-- Header -->
+            <div class="create-inst-header">
+                <div class="create-inst-icon" id="create-inst-icon" data-loader="vanilla">
+                    <img src="../../assets/icons/icon.png" class="create-inst-icon-img" alt="Soul Launcher">
+                    <span class="create-inst-loader-glyph" id="create-inst-loader-glyph">
+                        <img src="https://img.icons8.com/color/48/minecraft-grass-cube.png" style="width:16px;height:16px;object-fit:contain;">
+                    </span>
+                </div>
+                <div style="flex: 1;">
+                    <div class="create-inst-title">New Instance</div>
+                    <div class="create-inst-sub" id="create-inst-sub">Clean Mojang release with a polished Soul setup.</div>
+                </div>
+                <button class="tb-btn" id="btn-cancel-create" style="height: 36px; width: 36px; border-radius: 10px; background: rgba(255,255,255,0.05);">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="create-inst-body">
+                <!-- Name -->
+                <div class="create-field">
+                    <label class="create-label">Instance Name</label>
+                    <input type="text" id="new-inst-name" placeholder="e.g. Survival World, Modded 1.21..." style="width: 100%;">
+                </div>
+
+                <div class="create-field">
+                    <label class="create-label">Instance Icon</label>
+                    <div class="create-icon-picker">
+                        <div class="create-icon-preview" id="new-inst-icon-preview">
+                            <img src="../../assets/icons/icon.png" alt="Instance icon">
+                            <span class="create-icon-preview-badge" id="new-inst-icon-badge" style="background: transparent; padding: 0;">
+                                <img src="https://img.icons8.com/color/48/minecraft-grass-cube.png" style="width:100%;height:100%;object-fit:contain;padding:2px;">
+                            </span>
+                        </div>
+                        <div class="create-icon-picker-copy">
+                            <div class="create-icon-picker-title">Personalize this instance</div>
+                            <div class="create-icon-picker-sub" id="new-inst-icon-label">Using the default Soul icon.</div>
+                            <div class="create-icon-picker-actions">
+                                <button class="create-secondary-btn" id="btn-pick-inst-icon">
+                                    <i class="fa-solid fa-image"></i> Choose Image
+                                </button>
+                                <button class="create-secondary-btn ghost" id="btn-clear-inst-icon">
+                                    <i class="fa-solid fa-rotate-left"></i> Default
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loader Pills -->
+                    <div class="create-field">
+                        <label class="create-label">Mod Loader</label>
+                        <div class="create-loader-pills">
+                            <button class="create-loader-pill active" data-loader="vanilla">
+                                <img src="https://img.icons8.com/color/48/minecraft-grass-cube.png" style="width:18px;height:18px;margin-right:8px;object-fit:contain;"> Vanilla
+                            </button>
+                            <button class="create-loader-pill" data-loader="fabric">
+                                <img src="https://raw.githubusercontent.com/fabricmc/fabricmc.net/master/assets/logo.png" style="width:18px;height:18px;margin-right:8px;object-fit:contain;"> Fabric
+                            </button>
+                            <button class="create-loader-pill" data-loader="soulclient">
+                                <i class="fa-solid fa-crown" style="width:18px;height:18px;margin-right:8px;display:inline-flex;align-items:center;justify-content:center;color:#fbbf24;"></i> Soul Client
+                            </button>
+                            <button class="create-loader-pill" data-loader="kruthclient">
+                                <img src="https://kruthclient.github.io/resources/logo.png" style="width:18px;height:18px;margin-right:8px;object-fit:contain;"> Kruth Client
+                            </button>
+                        </div>
+                    </div>
+
+                <!-- Minecraft Version -->
+                <div class="create-field">
+                    <label class="create-label">Minecraft Version</label>
+                    <input type="text" id="new-inst-ver-search" placeholder="Search versions..." style="width: 100%; margin-bottom: 6px;">
+                    <div class="create-version-list" id="new-inst-version-list">
+                        <div style="padding: 16px; text-align: center; opacity: 0.5; font-size: 12px;">
+                            <i class="fa-solid fa-spinner fa-spin"></i> Loading versions...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Jar Files -->
+                <div class="create-field">
+                    <label class="create-label">Add Jar Files <span style="opacity: 0.4; font-weight: 400;">(optional – copies into instance mods folder)</span></label>
+                    <button class="launch-btn" id="btn-add-jar" style="font-size: 13px; padding: 10px 18px; width: 100%; justify-content: center;">
+                        <i class="fa-solid fa-file-arrow-up"></i> Browse .jar / .zip Files
+                    </button>
+                    <div id="jar-file-list" style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;"></div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="create-inst-footer">
+                <button class="launch-btn" id="btn-confirm-create" style="flex: 1; font-size: 16px; padding: 14px 30px; justify-content: center;">
+                    <i class="fa-solid fa-plus"></i> Create Instance
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VERSION / INSTANCE SWITCHER -->
+    <div class="overlay" id="overlay-switch-vi">
+        <div class="overlay-content switch-vi-modal">
+            <div class="switch-vi-header">
+                <div class="switch-vi-tabs">
+                    <button class="switch-vi-tab active" data-svi="version">Version</button>
+                    <button class="switch-vi-tab" data-svi="instance">Instance</button>
+                </div>
+                <button class="tb-btn" id="btn-close-switch-vi"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="switch-vi-body">
+                <div class="switch-vi-panel active" id="svi-version">
+                    <div class="svi-loader-pills">
+                        <button class="svi-loader-pill active" data-loader="all">All</button>
+                        <button class="svi-loader-pill" data-loader="vanilla">Vanilla</button>
+                        <button class="svi-loader-pill" data-loader="fabric">Fabric</button>
+                        <button class="svi-loader-pill" data-loader="soulclient">Soul Client</button>
+                        <button class="svi-loader-pill" data-loader="kruthclient">Kruth Client</button>
+                    </div>
+                    <input type="text" id="svi-version-search" placeholder="Search versions..." style="margin-bottom: 12px;">
+                    <div class="svi-list" id="svi-version-list"></div>
+                </div>
+                <div class="switch-vi-panel" id="svi-instance">
+                    <input type="text" id="svi-instance-search" placeholder="Search instances..." style="margin-bottom: 12px;">
+                    <div class="svi-list" id="svi-instance-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACCOUNT DROPDOWN -->
+    <div id="acc-dropdown">
+        <div id="account-list"></div>
+        <div class="acc-item" id="btn-add-acc" style="border-top: 1px solid var(--gray2); margin-top: 5px; background: #3b82f6; color: white;">
+            <i class="fa-solid fa-plus"></i> <span>Add Account</span>
+        </div>
+        <div class="acc-item" id="btn-link-website" style="background: #30b0ff; color: white;">
+            <i class="fa-solid fa-link"></i> <span>Link to Website</span>
+        </div>
+    </div>
+
+    <!-- LINK TO WEBSITE (pairing code for verified sign-in on Soul Web) -->
+    <div class="overlay" id="link-web-modal">
+        <div class="overlay-content" style="width: 470px; padding: 30px; text-align: center;">
+            <div style="display:flex; gap:12px; align-items:center; justify-content:center; margin-bottom:8px;">
+                <i class="fa-solid fa-link" style="color:var(--accent); font-size:20px;"></i>
+                <h3 style="margin:0; font-family:'Inter',sans-serif; font-size:20px; text-transform:uppercase; letter-spacing:0.05em; color:var(--accent);">Link to Website</h3>
+            </div>
+            <p style="font-size:13px; opacity:.75; margin:8px 0 18px; line-height:1.6;">Open <span id="link-web-origin" style="color:var(--accent);">Soul Web</span>, click <b>Login with Minecraft</b> &rarr; <b>Link with Soul Launcher</b>, and enter this code (valid 15 minutes):</p>
+            <div id="link-web-code" style="font-family:'JetBrains Mono',monospace; font-size:32px; font-weight:800; letter-spacing:9px; background:var(--gray2); border:1px solid var(--glass-border); border-radius:14px; padding:14px 10px 10px; margin:0 24px;">&middot;&middot;&middot;&middot;&middot;&middot;</div>
+            <p id="link-web-status" style="font-size:12px; opacity:.55; margin:14px 0 18px;">Waiting for the website&hellip;</p>
+            <div style="display:flex; gap:12px; justify-content:center;">
+                <button class="fm-btn" id="btn-link-copy" style="min-width:110px; justify-content:center;">Copy code</button>
+                <button class="fm-btn fm-btn-primary" id="btn-link-close" style="min-width:110px; justify-content:center;">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GENERIC CONFIRM MODAL (themed, replaces native confirm()) -->
+    <div class="overlay" id="confirm-modal">
+        <div class="overlay-content" style="width: 440px; padding: 30px;">
+            <div style="margin-bottom: 20px;">
+                <h3 id="confirm-title" style="margin: 0; font-family: 'Inter', sans-serif; font-size: 20px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent);">Confirm</h3>
+                <p id="confirm-message" style="margin-top: 8px; font-size: 14px; opacity: 0.8; white-space: pre-line;"></p>
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button class="fm-btn" id="btn-confirm-cancel" style="min-width: 100px; justify-content: center;">Cancel</button>
+                <button class="fm-btn fm-btn-primary" id="btn-confirm-ok" style="min-width: 100px; justify-content: center;">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODPACK INSTALL PICKER (version select + Soul Client option) -->
+    <div class="overlay" id="overlay-modpack-picker">
+        <div class="overlay-content create-inst-modal" style="max-width: 560px;">
+            <div class="create-inst-header">
+                <div class="create-inst-icon" style="display: flex; align-items: center; justify-content: center;">
+                    <i class="fa-solid fa-rocket" style="font-size: 22px; color: var(--accent);"></i>
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                    <div class="create-inst-title">Install Modpack</div>
+                    <div class="create-inst-sub" id="mp-picker-sub">Choose a version — a brand-new instance will be created.</div>
+                </div>
+                <button class="tb-btn" id="btn-close-mp-picker" style="height: 36px; width: 36px; border-radius: 10px; background: rgba(255,255,255,0.05);">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="create-inst-body">
+                <div class="create-field">
+                    <label class="create-label">Version</label>
+                    <input type="text" id="mp-version-search" placeholder="Filter versions... (e.g. 1.21)" style="width: 100%; margin-bottom: 6px;">
+                    <div class="create-version-list mrd-scroll" id="mp-version-list" style="max-height: 260px; overflow-y: auto;">
+                        <div style="padding: 16px; text-align: center; opacity: 0.5; font-size: 12px;">
+                            <i class="fa-solid fa-spinner fa-spin"></i> Loading versions...
+                        </div>
+                    </div>
+                </div>
+                <div class="create-field">
+                    <label class="setting-row" style="display: flex; gap: 10px; align-items: flex-start; cursor: pointer;">
+                        <input type="checkbox" id="mp-soul-check" style="width: 18px; height: 18px; margin-top: 2px; accent-color: var(--accent);">
+                        <span>
+                            <span style="font-weight: 800;">Install with Soul Client</span><br>
+                            <span id="mp-soul-status" style="font-size: 12px; opacity: 0.65;">Checking support...</span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+            <div class="create-inst-footer" style="display: flex; gap: 10px;">
+                <button class="fm-btn" id="btn-mp-picker-cancel" style="min-width: 110px; justify-content: center;">Cancel</button>
+                <button class="launch-btn" id="btn-mp-picker-install" style="flex: 1; font-size: 15px; padding: 13px 20px; justify-content: center;">
+                    <i class="fa-solid fa-download"></i> Install Pack
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GENERIC PROMPT MODAL -->
+    <div class="overlay" id="prompt-modal">
+        <div class="overlay-content" style="width: 400px; padding: 30px;">
+            <div style="margin-bottom: 20px;">
+                <h3 id="prompt-title" style="margin: 0; font-family: 'Inter', sans-serif; font-size: 20px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent);">Prompt</h3>
+                <p id="prompt-message" style="margin-top: 8px; font-size: 14px; opacity: 0.8;"></p>
+            </div>
+            <input type="text" id="prompt-input" style="width: 100%; padding: 12px 16px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 12px; color: white; outline: none; margin-bottom: 25px; font-family: inherit;">
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button class="fm-btn" id="btn-prompt-cancel" style="min-width: 100px; justify-content: center;">Cancel</button>
+                <button class="fm-btn fm-btn-primary" id="btn-prompt-ok" style="min-width: 100px; justify-content: center;">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../../node_modules/three/build/three.min.js"></script>
+    <script src="../../../node_modules/skinview3d/bundles/skinview3d.bundle.js"></script>
+    <script>
+        console.log('Libraries Check:', { 
+            THREE: typeof THREE !== 'undefined', 
+            skinview3d: typeof skinview3d !== 'undefined' 
+        });
+    </script>
+    <script src="../error-handling/Notification.js"></script>
+    <script src="../ghosts.js"></script>
+    <script src="home.js"></script>
+</body>
+</html>
